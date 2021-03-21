@@ -1,6 +1,4 @@
-
-
-class MyBinaryTree:
+class BinaryTree:
 
     def __init__(self, value, left, right):
         self._value = value
@@ -17,20 +15,3 @@ class MyBinaryTree:
             total += self._right.sum()
 
         return total
-
-
-class Leaf(MyBinaryTree):
-    def __init__(self, value):
-        super().__init__(value, None, None)
-
-    def sum(self):
-        return self._value
-
-
-bt = MyBinaryTree(
-    value=0,
-    left=MyBinaryTree(1, None, None),
-    right=Leaf(3)
-)
-
-print(bt.sum())
