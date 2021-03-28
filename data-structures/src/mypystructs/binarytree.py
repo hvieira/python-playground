@@ -1,5 +1,4 @@
 from itertools import chain
-
 from collections.abc import Collection
 
 
@@ -55,3 +54,25 @@ class BinaryTree(Collection):
             total += self._right.sum()
 
         return total
+
+    def height(self) -> int:
+        lh = self._left.height() if self._left is not None else 0
+        rh = self._right.height() if self._right is not None else 0
+
+        return max(lh, rh) + 1
+
+    # TODO having the height/level pre-computed would help this
+    def __str__(self) -> str:
+        return self.as_string(0)
+
+    def as_string(self, level):
+        level_str = "  " * level
+        res = f"(v={self._value})"
+
+        if self._left is not None:
+            res += f"\n{level_str}|-L={self._left.as_string(level + 1)}"
+
+        if self._right is not None:
+            res += f"\n{level_str}|-R={self._right.as_string(level + 1)}"
+
+        return res
