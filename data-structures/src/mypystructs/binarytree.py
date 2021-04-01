@@ -2,7 +2,7 @@ from __future__ import annotations
 from itertools import chain
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import Optional, Type
+from typing import Optional
 
 
 @dataclass
