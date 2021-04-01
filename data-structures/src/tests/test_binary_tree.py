@@ -169,31 +169,228 @@ class TestBinaryTree:
                     )
             ),
             (
-                BinaryTree(
-                    value=3,
-                    left=BinaryTree(
-                        value=1,
-                        left=BinaryTree(0, None, None),
-                        right=None),
-                    right=BinaryTree(
-                        value=5,
-                        left=BinaryTree(4, None, None),
-                        right=BinaryTree(6, None, None),
+                    BinaryTree(
+                        value=3,
+                        left=BinaryTree(
+                            value=1,
+                            left=BinaryTree(0, None, None),
+                            right=None),
+                        right=BinaryTree(
+                            value=5,
+                            left=BinaryTree(4, None, None),
+                            right=BinaryTree(6, None, None),
+                        )
+                    ),
+                    (
+                            "(v=3)"
+                            "\n|-L=(v=1)"
+                            "\n  |-L=(v=0)"
+                            "\n|-R=(v=5)"
+                            "\n  |-L=(v=4)"
+                            "\n  |-R=(v=6)"
                     )
-                ),
-                (
-                        "(v=3)"
-                        "\n|-L=(v=1)"
-                        "\n  |-L=(v=0)"
-                        "\n|-R=(v=5)"
-                        "\n  |-L=(v=4)"
-                        "\n  |-R=(v=6)"
-                )
             )
         ]
     )
     def test_pretty_str_repr(self, tree, expected_str_repr):
         assert tree.as_pretty_string() == expected_str_repr
+
+    def test_add_higher_values_keeps_tree_balanced(self):
+        tree = BinaryTree.new(1)
+
+        tree.add(1)
+        assert tree == BinaryTree(1)
+
+        tree.add(2)
+        assert tree == BinaryTree(
+            value=1,
+            right=BinaryTree(2)
+        )
+
+        tree.add(3)
+        assert tree == (
+            BinaryTree(
+                value=2,
+                left=BinaryTree(1),
+                right=BinaryTree(3)
+            )
+        )
+
+        tree.add(4)
+        assert tree == (
+            BinaryTree(
+                2,
+                left=BinaryTree(1),
+                right=BinaryTree(
+                    value=3,
+                    right=BinaryTree(4)
+                )
+            )
+        )
+
+        tree.add(5)
+        assert tree == (
+            BinaryTree(
+                2,
+                left=BinaryTree(1),
+                right=BinaryTree(
+                    value=4,
+                    left=BinaryTree(3),
+                    right=BinaryTree(5)
+                )
+            )
+        )
+
+        tree.add(6)
+        assert tree == (
+            BinaryTree(
+                4,
+                left=BinaryTree(
+                    value=2,
+                    left=BinaryTree(1),
+                    right=BinaryTree(3)
+                ),
+                right=BinaryTree(
+                    value=5,
+                    right=BinaryTree(6)
+                )
+            )
+        )
+
+        tree.add(7)
+        assert tree == (
+            BinaryTree(
+                4,
+                left=BinaryTree(
+                    value=2,
+                    left=BinaryTree(1),
+                    right=BinaryTree(3)
+                ),
+                right=BinaryTree(
+                    value=6,
+                    left=BinaryTree(5),
+                    right=BinaryTree(7)
+                )
+            )
+        )
+
+        tree.add(8)
+        assert tree == (
+            BinaryTree(
+                4,
+                left=BinaryTree(
+                    value=2,
+                    left=BinaryTree(1),
+                    right=BinaryTree(3)
+                ),
+                right=BinaryTree(
+                    value=6,
+                    left=BinaryTree(5),
+                    right=BinaryTree(
+                        value=7,
+                        right=BinaryTree(8)
+                    )
+                )
+            )
+        )
+
+        tree.add(9)
+        assert tree == (
+            BinaryTree(
+                4,
+                left=BinaryTree(
+                    value=2,
+                    left=BinaryTree(1),
+                    right=BinaryTree(3)
+                ),
+                right=BinaryTree(
+                    value=6,
+                    left=BinaryTree(5),
+                    right=BinaryTree(
+                        value=8,
+                        left=BinaryTree(7),
+                        right=BinaryTree(9)
+                    )
+                )
+            )
+        )
+
+        tree.add(10)
+        assert tree == (
+            BinaryTree(
+                4,
+                left=BinaryTree(
+                    value=2,
+                    left=BinaryTree(1),
+                    right=BinaryTree(3)
+                ),
+                right=BinaryTree(
+                    value=8,
+                    left=BinaryTree(
+                        value=6,
+                        left=BinaryTree(5),
+                        right=BinaryTree(7)
+                    ),
+                    right=BinaryTree(
+                        value=9,
+                        right=BinaryTree(10)
+                    )
+                )
+            )
+        )
+
+        tree.add(11)
+        assert tree == (
+            BinaryTree(
+                4,
+                left=BinaryTree(
+                    value=2,
+                    left=BinaryTree(1),
+                    right=BinaryTree(3)
+                ),
+                right=BinaryTree(
+                    value=8,
+                    left=BinaryTree(
+                        value=6,
+                        left=BinaryTree(5),
+                        right=BinaryTree(7)
+                    ),
+                    right=BinaryTree(
+                        value=10,
+                        left=BinaryTree(9),
+                        right=BinaryTree(11)
+                    )
+                )
+            )
+        )
+
+        tree.add(12)
+        assert tree == (
+            BinaryTree(
+                8,
+                left=BinaryTree(
+                    value=4,
+                    left=BinaryTree(
+                        value=2,
+                        left=BinaryTree(1),
+                        right=BinaryTree(3)
+                    ),
+                    right=BinaryTree(
+                        value=6,
+                        left=BinaryTree(5),
+                        right=BinaryTree(7)
+                    )
+                ),
+                right=BinaryTree(
+                    value=10,
+                    left=BinaryTree(9),
+                    right=BinaryTree(
+                        value=11,
+                        right=BinaryTree(12)
+                    )
+                )
+            )
+        )
 
     def test_sum_single_branch(self):
         assert BinaryTree(

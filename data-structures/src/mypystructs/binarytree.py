@@ -1,16 +1,23 @@
 from __future__ import annotations
 from itertools import chain
 from collections.abc import Collection
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
+
+import math
 
 
 @dataclass
 class BinaryTree(Collection):
-
     value: int
-    left: Optional[BinaryTree]
-    right: Optional[BinaryTree]
+    left: Optional[BinaryTree] = None
+    right: Optional[BinaryTree] = None
+
+    _balance_factor: int = field(default=0, init=False, repr=True, compare=False)
+
+    @classmethod
+    def new(cls, value) -> BinaryTree:
+        return BinaryTree(value)
 
     def __len__(self) -> int:
         size = 1
@@ -75,3 +82,59 @@ class BinaryTree(Collection):
             res += f"\n{level_str}|-R={self.right.as_pretty_string(level + 1)}"
 
         return res
+
+    def add(self, value):
+        if self.value == value:
+            pass
+        elif value > self.value:
+            if self.right is None:
+                self.right = BinaryTree(value)
+            else:
+                self.right.add(value)
+        else:
+            if self.left is None:
+                self.left = BinaryTree(value)
+            else:
+                self.left.add(value)
+
+        self.re_balance_if_necessary()
+
+    def compute_balance_factors(self):
+        hl = 0 if self.left is None else self.left.height()
+        hr = 0 if self.right is None else self.right.height()
+        self._balance_factor = hl - hr
+
+    def re_balance_if_necessary(self):
+        self.compute_balance_factors()
+
+        if self._balance_factor > 1:  # tree is unbalanced on the left
+            print(f'unbalanced_node = {self}')
+            pass
+        elif self._balance_factor < -1:  # tree is unbalanced on the right
+            if self.right._balance_factor == -1:  # new node was inserted to the right. left-rotate the right node
+
+                if self.right.left is not None:
+                    new_root = BinaryTree(
+                        value=self.right.value,
+                        left=BinaryTree(self.value, left=self.left, right=self.right.left),
+                        right=self.right.right
+                    )
+
+                else:
+                    new_root = BinaryTree(
+                        value=self.right.value,
+                        left=BinaryTree(self.value, left=self.left, right=None),
+                        right=self.right.right
+                    )
+
+                self.value = new_root.value
+                self.left = new_root.left
+                self.right = new_root.right
+
+            else:
+                pass
+
+            self.compute_balance_factors()
+
+        else:  # this tree is balanced
+            pass
