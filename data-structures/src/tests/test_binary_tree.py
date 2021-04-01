@@ -192,8 +192,8 @@ class TestBinaryTree:
             )
         ]
     )
-    def test_str_repr(self, tree, expected_str_repr):
-        assert str(tree) == expected_str_repr
+    def test_pretty_str_repr(self, tree, expected_str_repr):
+        assert tree.as_pretty_string() == expected_str_repr
 
     def test_sum_single_branch(self):
         assert BinaryTree(
