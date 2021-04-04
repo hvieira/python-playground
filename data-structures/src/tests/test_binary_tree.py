@@ -447,3 +447,66 @@ class TestBinaryTree:
                 right=BinaryTree(5)
             )
         )
+
+    @pytest.mark.parametrize(
+        "initial_tree, item, expected_tree",
+        [
+            (
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(0),
+                        right=BinaryTree(2),
+                    ),
+                    2,
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(0)
+                    )
+            ),
+            (
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(0),
+                        right=BinaryTree(2),
+                    ),
+                    0,
+                    BinaryTree(
+                        value=1,
+                        right=BinaryTree(2)
+                    )
+            ),
+            (
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(
+                            value=0,
+                            left=BinaryTree(-1)),
+                        right=BinaryTree(2),
+                    ),
+                    -1,
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(0),
+                        right=BinaryTree(2)
+                    )
+            ),
+            (
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(0),
+                        right=BinaryTree(
+                            value=2,
+                            right=BinaryTree(3)),
+                    ),
+                    3,
+                    BinaryTree(
+                        value=1,
+                        left=BinaryTree(0),
+                        right=BinaryTree(2)
+                    )
+            )
+        ]
+    )
+    def test_remove_leaf_items(self, initial_tree, item, expected_tree):
+        initial_tree.remove(item)
+        assert initial_tree == expected_tree

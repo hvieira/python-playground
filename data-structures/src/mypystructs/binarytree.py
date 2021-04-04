@@ -83,21 +83,38 @@ class BinaryTree(Collection):
 
         return res
 
-    def add(self, value):
-        if self.value == value:
+    def add(self, item: int):
+        if self.value == item:
             pass
-        elif value > self.value:
+        elif item > self.value:
             if self.right is None:
-                self.right = BinaryTree(value)
+                self.right = BinaryTree(item)
             else:
-                self.right.add(value)
+                self.right.add(item)
         else:
             if self.left is None:
-                self.left = BinaryTree(value)
+                self.left = BinaryTree(item)
             else:
-                self.left.add(value)
+                self.left.add(item)
 
         self.re_balance_if_necessary()
+
+    def remove(self, item: int):
+        if item < self.value:
+            if self.left is not None:
+                if self.left.value == item:
+                    self.left = None
+                else:
+                    self.left.remove(item)
+
+        elif item > self.value:
+            if self.right is not None:
+                if self.right.value == item:
+                    self.right = None
+                else:
+                    self.right.remove(item)
+        else:
+            pass
 
     def compute_balance_factors(self):
         hl = 0 if self.left is None else self.left.height()
@@ -162,3 +179,5 @@ class BinaryTree(Collection):
 
         else:  # this tree is balanced
             pass
+
+
