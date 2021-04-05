@@ -165,6 +165,62 @@ class TestAVLTree:
         )
 
     @pytest.mark.parametrize(
+        "initial_tree, item_to_add, expected_tree",
+        [
+            (
+                AVLTree(
+                    root=AVLTreeNode(
+                        value=5,
+                        right=AVLTreeNode(
+                            value=8
+                        )
+                    )
+                ),
+                6,
+                AVLTree(
+                    root=AVLTreeNode(
+                        value=6,
+                        left=AVLTreeNode(value=5),
+                        right=AVLTreeNode(value=8)
+                    )
+                )
+            )
+        ]
+
+    )
+    def test_right_left_rotation(self, initial_tree, item_to_add, expected_tree):
+        initial_tree.add(item_to_add)
+        assert initial_tree == expected_tree
+
+    @pytest.mark.parametrize(
+        "initial_tree, item_to_add, expected_tree",
+        [
+            (
+                    AVLTree(
+                        root=AVLTreeNode(
+                            value=8,
+                            left=AVLTreeNode(
+                                value=5
+                            )
+                        )
+                    ),
+                    6,
+                    AVLTree(
+                        root=AVLTreeNode(
+                            value=6,
+                            left=AVLTreeNode(value=5),
+                            right=AVLTreeNode(value=8)
+                        )
+                    )
+            )
+        ]
+
+    )
+    def test_left_right_rotation(self, initial_tree, item_to_add, expected_tree):
+        initial_tree.add(item_to_add)
+        assert initial_tree == expected_tree
+
+    @pytest.mark.parametrize(
         "initial_tree, item, expected_tree",
         [
             (
@@ -362,134 +418,3 @@ class TestAVLTree:
     def test_remove_items_with_only_right_subtree(self, initial_tree, item, expected_tree):
         initial_tree.remove(item)
         assert initial_tree == expected_tree
-
-    # @pytest.mark.parametrize(
-    #     "initial_tree, item, expected_tree",
-    #     [
-    #         (
-    #                 AVLTreeNode(
-    #                     value=2,
-    #                     left=AVLTreeNode(
-    #                         value=0,
-    #                         right=AVLTreeNode(1)),
-    #                     right=AVLTreeNode(3),
-    #                 ),
-    #                 0,
-    #                 AVLTreeNode(
-    #                     value=2,
-    #                     left=AVLTreeNode(1),
-    #                     right=AVLTreeNode(3)
-    #                 )
-    #         ),
-    #         (
-    #                 AVLTreeNode(
-    #                     value=1,
-    #                     left=AVLTreeNode(0),
-    #                     right=AVLTreeNode(
-    #                         value=3,
-    #                         right=AVLTreeNode(4)),
-    #                 ),
-    #                 3,
-    #                 AVLTreeNode(
-    #                     value=1,
-    #                     left=AVLTreeNode(0),
-    #                     right=AVLTreeNode(4)
-    #                 )
-    #         )
-    #     ]
-    # )
-    # def test_remove_items_with_left_subtrees(self, initial_tree, item, expected_tree):
-    #     initial_tree.remove(item)
-    #     assert initial_tree == expected_tree
-    #
-    # # @pytest.mark.skip
-    # @pytest.mark.parametrize(
-    #     "initial_tree, item, expected_tree",
-    #     [
-    #         (
-    #                 AVLTreeNode(
-    #                     value=4,
-    #                     left=AVLTreeNode(
-    #                         value=2,
-    #                         left=AVLTreeNode(1),
-    #                         right=AVLTreeNode(3)
-    #                     ),
-    #                     right=AVLTreeNode(
-    #                         value=6,
-    #                         left=AVLTreeNode(5),
-    #                         right=AVLTreeNode(
-    #                             value=8,
-    #                             left=AVLTreeNode(7),
-    #                             right=AVLTreeNode(9)
-    #                         )
-    #                     ),
-    #                 ),
-    #                 6,
-    #                 AVLTreeNode(
-    #                     value=4,
-    #                     left=AVLTreeNode(
-    #                         value=2,
-    #                         left=AVLTreeNode(1),
-    #                         right=AVLTreeNode(3)
-    #                     ),
-    #                     right=AVLTreeNode(
-    #                         value=8,
-    #                         left=AVLTreeNode(
-    #                             value=5,
-    #                             right=AVLTreeNode(7)
-    #                         ),
-    #                         right=AVLTreeNode(9)
-    #                     ),
-    #                 ),
-    #         )
-    #     ]
-    # )
-    # def test_remove_items_with_both_subtrees(self, initial_tree, item, expected_tree):
-    #     print(f"BEFORE {initial_tree}")
-    #     initial_tree.remove(item)
-    #     print(f"AFTER {initial_tree}")
-    #     assert initial_tree == expected_tree
-    #
-    #
-    # @pytest.mark.parametrize(
-    #     "tree, expected_item",
-    #     [
-    #         (
-    #             AVLTreeNode(0),
-    #             0
-    #         ),
-    #         (
-    #                 AVLTreeNode(100),
-    #                 100
-    #         ),
-    #         (
-    #                 AVLTreeNode(-1),
-    #                 -1
-    #         ),
-    #         (
-    #                 AVLTreeNode(
-    #                     value=0,
-    #                     left=AVLTreeNode(-1),
-    #                     right=AVLTreeNode(1)
-    #                 ),
-    #                 1
-    #         ),
-    #         (
-    #                 AVLTreeNode(
-    #                     value=-1,
-    #                     left=AVLTreeNode(
-    #                         value=-3,
-    #                         left=AVLTreeNode(-4),
-    #                         right=AVLTreeNode(-2)
-    #                     ),
-    #                     right=AVLTreeNode(
-    #                         value=0,
-    #                         right=AVLTreeNode(3)
-    #                     )
-    #                 ),
-    #                 3
-    #         )
-    #     ]
-    # )
-    # def test_max_values(self, tree, expected_item):
-    #     assert tree.max() == expected_item

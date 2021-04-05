@@ -124,10 +124,19 @@ class AVLTreeNode(Collection[int]):
         balance_factor = self._compute_balance_factor()
 
         if balance_factor > 1:  # tree is unbalanced on the left
-            self._rotate_right()
+
+            # check if left subtree is right heavy
+            if self.left._compute_balance_factor() < 0:
+                self._double_left_right_rotate()
+            else:
+                self._single_rotate_right()
 
         elif balance_factor < -1:  # tree is unbalanced on the right
-            self._rotate_left()
+
+            if self.right._compute_balance_factor() > 0:
+                self._double_right_left_rotate()
+            else:
+                self._single_rotate_left()
 
         else:  # this tree is balanced
             pass
@@ -137,9 +146,9 @@ class AVLTreeNode(Collection[int]):
         hr = 0 if self.right is None else self.right.height()
         return hl - hr
 
-    def _rotate_left(self):
+    def _single_rotate_left(self):
         new_node = AVLTreeNode(
-            value=self.right.value, 
+            value=self.right.value,
             left=AVLTreeNode(
                 value=self.value,
                 left=self.left,
@@ -152,7 +161,7 @@ class AVLTreeNode(Collection[int]):
         self.left = new_node.left
         self.right = new_node.right
 
-    def _rotate_right(self):
+    def _single_rotate_right(self):
         new_node = AVLTreeNode(
             value=self.left.value,
             left=self.left.left,
@@ -166,6 +175,14 @@ class AVLTreeNode(Collection[int]):
         self.value = new_node.value
         self.left = new_node.left
         self.right = new_node.right
+
+    def _double_right_left_rotate(self):
+        self.right._single_rotate_right()
+        self._single_rotate_left()
+
+    def _double_left_right_rotate(self):
+        self.left._single_rotate_left()
+        self._single_rotate_right()
 
     def remove(self, item, parent=None):
         if item == self.value:
@@ -217,3 +234,5 @@ class AVLTreeNode(Collection[int]):
             return node, parent
         else:
             return AVLTreeNode.find_highest_value(node.right, parent=node)
+
+
