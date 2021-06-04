@@ -6,7 +6,7 @@ from mypystructs.avl_tree import AVLTree, AVLTreeNode
 
 
 def tree_from_values(items: Iterable[int]) -> AVLTree:
-    tree = AVLTree()
+    tree: AVLTree[int] = AVLTree()
     for item in items:
         tree.add(item)
 
