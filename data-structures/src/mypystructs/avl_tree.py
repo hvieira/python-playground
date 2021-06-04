@@ -35,7 +35,10 @@ class AVLTree(Collection[int]):
 
     def remove(self, item):
         if self.root is not None:
-            self.root.remove(item)
+            if self.root.left is None and self.root.right is None and self.root.value == item:
+                self.root = None
+            else:
+                self.root.remove(item)
 
 
 @dataclass
@@ -187,7 +190,7 @@ class AVLTreeNode(Collection[int]):
     def remove(self, item, parent=None):
         if item == self.value:
 
-            if self.left is not None:
+            if self.left is not None: # the node to be deleted has a left subtree
                 highest_value_node, highest_parent = AVLTreeNode.find_highest_value(self.left, parent=self)
 
                 # the highest node on a left subtree does not have a right subtree, so just rewire parent
