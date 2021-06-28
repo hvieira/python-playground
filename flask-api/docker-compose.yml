@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  psql:
+    image: postgres:13.3-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    volumes:
+      - ./docker/psql/data:/var/lib/postgresql/data
+      - ./docker/psql/init-scripts/:/docker-entrypoint-initdb.d
