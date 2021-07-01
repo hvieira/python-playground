@@ -1,24 +1,20 @@
 import functools
-from typing import Optional
 
 from flask import (
-    Blueprint, Response,
-    g, request, abort, current_app
+    Response,
+    g,
+    request,
+    abort,
+    current_app
 )
 
 
-bp = Blueprint('auth', __name__)
-
-
-@bp.before_app_request
 def load_logged_in_user():
-    auth_token = request.headers.get('Authorization', Optional[str])
-
+    auth_token = request.headers.get('Authorization', None)
     g.client_auth_token = auth_token
 
 
 def authenticated_client(view):
-
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.client_auth_token is None:

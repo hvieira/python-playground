@@ -24,7 +24,7 @@ def create_app(test_config=None):
 
     todo_core = core.TODOTaskCore()
 
-    app.register_blueprint(auth.bp)
+    app.before_request(auth.load_logged_in_user)
     app.register_blueprint(todo_task.create_blueprint(todo_core))
 
     return app
