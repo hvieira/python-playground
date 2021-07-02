@@ -21,7 +21,7 @@ def authenticated_client(view):
             current_app.logger.warning("Request made without authentication to protected resource")
             abort(Response("Request requires authentication", status=401))
         else:
-            # TODO validate token
+            # validation of token would happen here
             return view(**kwargs)
 
     return wrapped_view

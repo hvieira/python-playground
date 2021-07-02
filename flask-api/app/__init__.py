@@ -4,6 +4,7 @@ from app import (
     config,
     db,
     core,
+    adapters
 )
 from app.resources import (
     auth, todo_task
@@ -22,7 +23,8 @@ def create_app(test_config=None):
 
     db.configure(app, init_db)
 
-    todo_core = core.TODOTaskCore()
+    todo_storage = adapters.DBTODOTaskStorage()
+    todo_core = core.TODOTaskCore(todo_storage)
 
     app.before_request(auth.load_logged_in_user)
     app.register_blueprint(todo_task.create_blueprint(todo_core))

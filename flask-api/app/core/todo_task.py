@@ -1,19 +1,14 @@
-import uuid
-
+from app.adapters import TODOTaskStorage
 from app.models import TODOTask
-
-from app.db import db_session
 
 
 class TODOTaskCore:
 
-    def retrieve_todo_tasks(self):
-        return TODOTask.query.all()
+    def __init__(self, storage: TODOTaskStorage) -> None:
+        self.storage = storage
+
+    def retrieve_todo_tasks(self) -> list[TODOTask]:
+        return self.storage.get_tasks()
 
     def add_task(self, task: TODOTask) -> TODOTask:
-        task.id = str(uuid.uuid4())
-
-        db_session.add(task)
-        db_session.commit()
-
-        return task
+        return self.storage.add_task(task)
