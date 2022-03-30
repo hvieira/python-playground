@@ -10,7 +10,8 @@ from kata import create_app
 def app() -> Flask:
     app = create_app(test_config={
         'TESTING': True,
-        'DATABASE_URL': 'sqlite://'
+        'SQLALCHEMY_DATABASE_URI': 'sqlite://',
+        'SQLALCHEMY_TRACK_MODIFICATIONS': False
     })
 
     yield app

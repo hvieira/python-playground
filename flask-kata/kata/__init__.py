@@ -1,30 +1,27 @@
-import os
 from typing import Optional, Mapping, Any
-
 from flask import Flask
+
+from kata import config, db
+from kata.api import users
 
 
 def create_app(test_config: Optional[Mapping[str, Any]] = None):
-    app = Flask(__name__, instance_relative_config=True)
+    app: Flask = Flask(__name__, instance_relative_config=True)
 
-    # TODO will need to bootstrap this properly
-    # app.config.from_mapping(
-    #     SECRET_KEY='dev',
-    #     DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-    # )
-
+    init_schema = False
     if test_config is None:
-        # TODO load config properly
-        app.config.from_pyfile('config.py', silent=True)
+        app.config.from_mapping(config.configuration_mapping)
     else:
-        # load the test config if passed in
+        init_schema = True
         app.config.from_mapping(test_config)
+
+    db.init(app, init_schema)
 
     # a simple page that says hello
     @app.route('/')
     def hello():
         return 'Hello, World!'
 
-    # TODO load blueprints
+    app.register_blueprint(users.bp)
 
     return app
