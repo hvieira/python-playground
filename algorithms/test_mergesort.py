@@ -2,35 +2,48 @@ import itertools
 
 from mergesort import merge_sort_iterative, merge_sort_recursive
 
+int_asc_comparator = lambda l,r: l - r
+int_desc_comparator = lambda l,r: r - l
+
+alphabetic_asc_order = lambda l,r: 0 if l <= r else 1
 
 def test_mergesort_iterative_empty_list():
-    assert merge_sort_iterative([]) == []
+    assert merge_sort_iterative([], int_asc_comparator) == []
 
 def test_mergesort_iterative_single_element_list():
-    assert merge_sort_iterative([1]) == [1]
-    assert merge_sort_iterative([3]) == [3]
-    assert merge_sort_iterative([11]) == [11]
-    assert merge_sort_iterative([77]) == [77]
+    assert merge_sort_iterative([1], int_asc_comparator) == [1]
+    assert merge_sort_iterative([3], int_asc_comparator) == [3]
+    assert merge_sort_iterative([11], int_asc_comparator) == [11]
+    assert merge_sort_iterative([77], int_asc_comparator) == [77]
 
 def test_mergesort_iterative_two_element_list():
     expected = [1,2]
     for comb in itertools.permutations(expected):
-        assert merge_sort_iterative(list(comb)) == expected
+        assert merge_sort_iterative(list(comb), int_asc_comparator) == expected
     
 def test_mergesort_iterative_three_element_list():
     expected = [1,2,3]
     for comb in itertools.permutations(expected):
-        assert merge_sort_iterative(list(comb)) == expected
+        assert merge_sort_iterative(list(comb), int_asc_comparator) == expected
 
 def test_mergesort_iterative_four_element_list():
     expected = [1,2,3,4]
     for comb in itertools.permutations(expected):
-        assert merge_sort_iterative(list(comb)) == expected
+        assert merge_sort_iterative(list(comb), int_asc_comparator) == expected
+
+def test_mergesort_iterative_four_element_list_desc():
+    expected = [4,3,2,1]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_iterative(list(comb), int_desc_comparator) == expected
+
+
+def test_mergesort_iterative_strings():
+    assert merge_sort_iterative(["a", "b", "ab", "ba", "c"], alphabetic_asc_order) == ['a', 'ab', 'b', 'ba', 'c']
 
 
 def test_mergesort_iterative_large_list():
     input = [0 for _ in range(0,10000)]
-    assert merge_sort_iterative(input) == input
+    assert merge_sort_iterative(input, int_asc_comparator) == input
 
 # recursive 
 def test_mergesort_recursive_empty_list():

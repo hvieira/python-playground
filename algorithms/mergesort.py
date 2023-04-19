@@ -1,18 +1,18 @@
 from functools import reduce
 
-def merge_sort_iterative(l):
+def merge_sort_iterative(l, comparator):
     list_size = len(l)
     if list_size <= 1:
         return l
     else:
         mid_point = int(list_size/2)
-        left = merge_sort_iterative(l[:mid_point])
-        right = merge_sort_iterative(l[mid_point:])
+        left = merge_sort_iterative(l[:mid_point], comparator)
+        right = merge_sort_iterative(l[mid_point:], comparator)
 
-        return _sort_and_merge_iterative(left,right)
+        return _sort_and_merge_iterative(left,right, comparator)
 
 
-def _sort_and_merge_iterative(left, right):
+def _sort_and_merge_iterative(left, right, comparator):
     result = []
     li = 0
     ri = 0
@@ -26,7 +26,7 @@ def _sort_and_merge_iterative(left, right):
         elif l is None:
             result.append(r)
             ri += 1
-        elif l <= r:
+        elif comparator(l,r) <= 0:
             result.append(l)
             li += 1
         else:
@@ -44,8 +44,8 @@ def merge_sort_recursive(l):
         return l
     else:
         mid_point = int(list_size/2)
-        left = merge_sort_iterative(l[:mid_point])
-        right = merge_sort_iterative(l[mid_point:])
+        left = merge_sort_recursive(l[:mid_point])
+        right = merge_sort_recursive(l[mid_point:])
 
         return _sort_and_merge_recursive(left,right, [])
 
