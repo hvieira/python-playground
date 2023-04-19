@@ -1,3 +1,5 @@
+import itertools
+
 from mergesort import merge_sort_iterative, merge_sort_recursive
 
 
@@ -11,16 +13,20 @@ def test_mergesort_iterative_single_element_list():
     assert merge_sort_iterative([77]) == [77]
 
 def test_mergesort_iterative_two_element_list():
-    assert merge_sort_iterative([1,2]) == [1,2]
-    assert merge_sort_iterative([2,1]) == [1,2]
+    expected = [1,2]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_iterative(list(comb)) == expected
     
 def test_mergesort_iterative_three_element_list():
-    assert merge_sort_iterative([1,2,3]) == [1,2,3]
-    assert merge_sort_iterative([1,3,2]) == [1,2,3]
-    assert merge_sort_iterative([2,3,1]) == [1,2,3]
-    assert merge_sort_iterative([2,1,3]) == [1,2,3]
-    assert merge_sort_iterative([3,2,1]) == [1,2,3]
-    assert merge_sort_iterative([3,1,2]) == [1,2,3]
+    expected = [1,2,3]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_iterative(list(comb)) == expected
+
+def test_mergesort_iterative_four_element_list():
+    expected = [1,2,3,4]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_iterative(list(comb)) == expected
+
 
 def test_mergesort_iterative_large_list():
     input = [0 for _ in range(0,10000)]
@@ -37,16 +43,19 @@ def test_mergesort_recursive_single_element_list():
     assert merge_sort_recursive([77]) == [77]
 
 def test_mergesort_recursive_two_element_list():
-    assert merge_sort_recursive([1,2]) == [1,2]
-    assert merge_sort_recursive([2,1]) == [1,2]
+    expected = [1,2]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_recursive(list(comb)) == expected
     
 def test_mergesort_recursive_three_element_list():
-    assert merge_sort_recursive([1,2,3]) == [1,2,3]
-    assert merge_sort_recursive([1,3,2]) == [1,2,3]
-    assert merge_sort_recursive([2,3,1]) == [1,2,3]
-    assert merge_sort_recursive([2,1,3]) == [1,2,3]
-    assert merge_sort_recursive([3,2,1]) == [1,2,3]
-    assert merge_sort_recursive([3,1,2]) == [1,2,3]
+    expected = [1,2,3]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_recursive(list(comb)) == expected
+
+def test_mergesort_iterative_four_element_list():
+    expected = [1,2,3,4]
+    for comb in itertools.permutations(expected):
+        assert merge_sort_recursive(list(comb)) == expected
 
 # does not work with recursion out of the box in python and internet searches point to things like
 # """
