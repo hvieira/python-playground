@@ -16,24 +16,23 @@ def _sort_and_merge_iterative(left, right, comparator):
     result = []
     li = 0
     ri = 0
-    tuple = (left[li], right[ri])
-    while tuple != (None, None):
-        l, r = tuple
+    expected_len = len(left) + len(right)
 
-        if r is None:
+    while len(result) < expected_len:
+        l, r = left[li], right[ri]
+
+        if comparator(l, r) <= 0:
             result.append(l)
             li += 1
-        elif l is None:
-            result.append(r)
-            ri += 1
-        elif comparator(l,r) <= 0:
-            result.append(l)
-            li += 1
+            # handle iteration where we have exhausted all left elements. Given that the last left is still "less" than the next right, just get all the remainder right
+            if li >= len(left):
+                result += right[ri:]
         else:
             result.append(r)
             ri += 1
-            
-        tuple = (left[li] if li < len(left) else None, right[ri] if ri < len(right) else None)
+            # handle iteration where we have exhausted all right elements. Given that the last right is still "less" than the next left, just get all the remainder left
+            if ri >= len(right):
+                result += left[li:]
 
     return result
 
