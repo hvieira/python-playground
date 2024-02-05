@@ -57,7 +57,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-*/docker/psql/data/
+*/docker_data/psql/data/
 
 # mypy
 .mypy_cache/
