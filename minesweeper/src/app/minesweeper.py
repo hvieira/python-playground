@@ -8,6 +8,7 @@ import random
 class PickedMineException(Exception):
     pass
 
+
 @dataclasses.dataclass
 class MineSweeperCell():
     x: int
@@ -112,16 +113,16 @@ class MineSweeperBoard():
 
         # get the cells that will be mined
         indexes = list(range(0, size*size))
-        random.shuffle(indexes)
+        chosen_indexes = random.sample(indexes, num_mines)
 
-        for i in indexes[:num_mines]:
+        for i in chosen_indexes:
             x = cells_array[i].x
             y = cells_array[i].y
 
             mined_cell = dataclasses.replace(board_cells[x][y], mined=True)
             board_cells[x][y] = mined_cell
 
-        # scan board to define adjancent mines
+        # scan board to define number of adjancent mines
         for x in range(0, size):
             for y in range(0, size):
                 num_of_adjancent_mines = MineSweeperBoard._num_of_adjancent_mines(x, y, board_cells)
@@ -131,31 +132,29 @@ class MineSweeperBoard():
         return MineSweeperBoard(size, board_cells)
         
 
+if __name__ == "main":
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('size', type=int, metavar='S', help='size of the board (square)')
-argparser.add_argument('mines', type=int, metavar='M', help='size of the board (square)')
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('size', type=int, metavar='S', help='size of the board (square)')
+    argparser.add_argument('mines', type=int, metavar='M', help='size of the board (square)')
 
-parsed_args = argparser.parse_args()
+    parsed_args = argparser.parse_args()
 
-board = MineSweeperBoard.create(parsed_args.size, parsed_args.mines)
-board.print_to_stdout(reveal_all=True)
-
-
-input = input('Enter coordinates in form [x,y] to reveal:')
-raw_coords = input.split(',')
-if len(raw_coords) != 2:
-    raise RuntimeError(f'Coordinates in wrong format {input}')
-
-x = int(raw_coords[0])
-y = int(raw_coords[1])
-
-try:
-    board.reveal(x, y)
-except PickedMineException:
-    print('BOOM!')        
-
-board.print_to_stdout()
+    board = MineSweeperBoard.create(parsed_args.size, parsed_args.mines)
+    board.print_to_stdout(reveal_all=True)
 
 
+    input = input('Enter coordinates in form [x,y] to reveal:')
+    raw_coords = input.split(',')
+    if len(raw_coords) != 2:
+        raise RuntimeError(f'Coordinates in wrong format {input}')
 
+    x = int(raw_coords[0])
+    y = int(raw_coords[1])
+
+    try:
+        board.reveal(x, y)
+    except PickedMineException:
+        print('BOOM!')        
+
+    board.print_to_stdout()
