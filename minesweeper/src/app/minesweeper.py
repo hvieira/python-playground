@@ -51,9 +51,9 @@ class MineSweeperBoard():
         self.cells[x][y] = updated
 
         if updated.num_adjancent_mines == 0:
-            self.reveal_other_safe_cells(updated)
+            self._reveal_other_safe_cells(updated)
 
-    def reveal_other_safe_cells(self, cell):
+    def _reveal_other_safe_cells(self, cell):
         to_explore = MineSweeperBoard._adjancent_coordinates(cell.x, cell.y, self.cells)
         explored = {(cell.x, cell.y)}
         while len(to_explore) > 0:
