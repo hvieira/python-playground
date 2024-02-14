@@ -45,13 +45,19 @@ class MineSweeperBoard():
         if self.cells[x][y].mined:
             raise PickedMineException()
         
-        # TODO these 2 lines reveal an issue with responsibility of cell and board. Also mutable vs immutable
-        # this is repeated in a few other places
-        updated = self.cells[x][y].reveal()
+        updated_cell = self.update_cell(x, y, lambda cell : cell.reveal())
+
+        if updated_cell.num_adjancent_mines == 0:
+            self._reveal_other_safe_cells(updated_cell)
+
+    def update_cell(self: typing_extensions.Self, 
+                    x: int, 
+                    y: int, 
+                    update_fn: typing.Callable[[MineSweeperCell], MineSweeperCell]) -> None:
+        updated = update_fn(self.cells[x][y])
         self.cells[x][y] = updated
 
-        if updated.num_adjancent_mines == 0:
-            self._reveal_other_safe_cells(updated)
+        return updated
 
     def _reveal_other_safe_cells(self, cell):
         to_explore = MineSweeperBoard._adjancent_coordinates(cell.x, cell.y, self.cells)
@@ -62,8 +68,7 @@ class MineSweeperBoard():
             
             # if this was a safe/blank cell, reveal the adjancent ones
             if self.cells[x][y].num_adjancent_mines == 0:
-                updated = self.cells[x][y].reveal()
-                self.cells[x][y] = updated
+                self.update_cell(x, y, lambda cell : cell.reveal())
 
                 # do not explore what it has been explored already (i.e. avoid non ending loop)
                 adjancent_coordinates = MineSweeperBoard._adjancent_coordinates(x, y, self.cells)
