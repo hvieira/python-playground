@@ -42,13 +42,13 @@ class MineSweeperBoard():
             print()
 
     def reveal(self: typing_extensions.Self, x: int, y: int) -> typing_extensions.Self:
-        if self.cells[x][y].mined:
-            raise PickedMineException()
-        
-        updated_cell = self.update_cell(x, y, lambda cell : cell.reveal())
+        revealed_cell = self.update_cell(x, y, lambda cell : cell.reveal())
 
-        if updated_cell.num_adjancent_mines == 0:
-            self._reveal_other_safe_cells(updated_cell)
+        if revealed_cell.mined:
+            raise PickedMineException()
+
+        if revealed_cell.num_adjancent_mines == 0:
+            self._reveal_other_safe_cells(revealed_cell)
 
     def update_cell(self: typing_extensions.Self, 
                     x: int, 
