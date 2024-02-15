@@ -1,4 +1,4 @@
-from app.minesweeper import MineSweeperCell, MineSweeperBoard, PickedMineException, UnsupportedMove
+from app.minesweeper import MineSweeperCell, MineSweeperBoard, PickedMineException, UnsupportedMove, GameResult
 
 from unittest.mock import patch
 import pytest
@@ -383,6 +383,52 @@ class TestMineSweeperBoard:
                 2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             }
         })
+
+
     # TODO end game states
+    def test_game_is_over_if_a_mine_was_revealed(self):
+        assert MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=True, num_adjacent_mines=0),
+            }
+        }).is_game_over() == GameResult(game_over=True, victory=False)
+
+    def test_game_is_over_if_all_non_mined_cells_revealed_and_all_mines_are_flagged(self):
+        assert MineSweeperBoard(size=3, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, flagged=True, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=True, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=True, num_adjacent_mines=0),
+            },
+            1: {
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=True, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=True, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=True, num_adjacent_mines=0),
+            },
+            2:{
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=True, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=True, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
+            }
+        }).is_game_over() == GameResult(game_over=True, victory=True)
+
+    def test_game_is_not_over_under_all_other_circunstances(self):
+        assert MineSweeperBoard(size=3, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=True, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            },
+            1: {
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, flagged=True, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            },
+            2:{
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
+            }
+        }).is_game_over() == GameResult(game_over=False, victory=False)
 
     # TODO immutability?

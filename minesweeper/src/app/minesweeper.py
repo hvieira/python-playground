@@ -13,6 +13,11 @@ class UnsupportedMove(Exception):
 
 
 @dataclasses.dataclass
+class GameResult():
+    game_over: bool
+    victory: bool
+
+@dataclasses.dataclass
 class MineSweeperCell():
     x: int
     y: int
@@ -88,6 +93,33 @@ class MineSweeperBoard():
         self.cells[x][y] = updated
 
         return updated
+
+    # rules:
+    # if cell is mined and revealed -> lost
+    # if all non mined cells are revealed + all mines are flagged -> win
+    def is_game_over(self):
+        total_cells = self.size * self.size
+        # TODO this could be a board metadata to ease calculations
+        num_mines = 0
+        
+        num_mines_non_flagged = 0
+        num_non_mine_cells_revealed = 0
+        for x in range(0, self.size):
+            for y in range(0, self.size):
+                if self.cells[x][y].mined:
+                    num_mines += 1
+                    # revealed a mine. game is lost
+                    if self.cells[x][y].revealed:
+                        return GameResult(game_over=True, victory=False)
+                    
+                    if not self.cells[x][y].flagged:
+                        num_mines_non_flagged += 1
+                else:
+                    if self.cells[x][y].revealed:
+                        num_non_mine_cells_revealed += 1
+
+        success = num_mines_non_flagged == 0 and (total_cells-num_mines) == num_non_mine_cells_revealed
+        return GameResult(game_over=success, victory=success)
 
     def _reveal_other_safe_cells(self, cell):
         to_explore = MineSweeperBoard._adjacent_coordinates(cell.x, cell.y, self.cells)
