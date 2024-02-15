@@ -96,8 +96,8 @@ class MineSweeperBoard():
             x, y = to_explore.pop()
             explored.add((x,y))
             
-            # if this was a safe/blank cell, reveal the adjacent ones
-            if not self.cells[x][y].has_adjacent_mines():
+            # if this is a safe/blank cell (not flagged), reveal the adjacent ones
+            if not self.cells[x][y].has_adjacent_mines() and not self.cells[x][y].flagged:
                 self.update_cell(x, y, lambda cell : cell.reveal())
 
                 # do not explore what it has been explored already (i.e. avoid non ending loop)
