@@ -1,4 +1,4 @@
-from app.minesweeper import MineSweeperCell, MineSweeperBoard, PickedMineException, UnsupportedMove, GameResult
+from app.minesweeper import MineSweeperCell, MineSweeperBoard, UnsupportedMove, GameResult
 
 from unittest.mock import patch
 import pytest
@@ -165,14 +165,13 @@ class TestMineSweeperBoard:
         })
 
     @patch("random.sample")
-    def test_on_reveal_if_mined_is_picked_throw_exception(self, mock_sample):
+    def test_on_reveal_if_mined_reveal_only_that_cell_and_game_is_over(self, mock_sample):
         board_size = 3
         
         mock_sample.return_value = [0]
         board = MineSweeperBoard.create(board_size, 1)
         
-        with pytest.raises(PickedMineException):
-            board.reveal(x=0, y=0)
+        board.reveal(x=0, y=0)
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
@@ -191,6 +190,8 @@ class TestMineSweeperBoard:
                 2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             }
         })
+
+        assert board.is_game_over() == GameResult(game_over=True, victory=False)
 
     @patch("random.sample")
     def test_on_flag_update_cell_to_flagged(self, mock_sample):

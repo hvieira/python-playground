@@ -5,9 +5,6 @@ import typing_extensions
 import random
 
 
-class PickedMineException(Exception):
-    pass
-
 class UnsupportedMove(Exception):
     pass
 
@@ -74,7 +71,7 @@ class MineSweeperBoard():
         revealed_cell = self.update_cell(x, y, lambda cell : cell.reveal())
 
         if revealed_cell.mined:
-            raise PickedMineException()
+            return
 
         if not revealed_cell.has_adjacent_mines():
             self._reveal_other_safe_cells(revealed_cell)
@@ -222,10 +219,7 @@ if __name__ == "__main__":
         y = int(command[2])
         match(command[0]):
             case 'R':
-                try:
-                    board.reveal(x, y)
-                except PickedMineException:
-                    print('BOOM!')
+                board.reveal(x, y)
             case 'F':
                 try:
                     board.flag(x, y)
@@ -239,6 +233,14 @@ if __name__ == "__main__":
             case _:
                 print('Invalid command')
 
+        game_result = board.is_game_over()
+        game_over = game_result.game_over
+        
         board.print_to_stdout()
-
-        game_over = board.is_game_over().game_over
+        match game_result:
+            case GameResult(game_over=True, victory=True):
+                print('You managed to clear the field!')
+            case GameResult(game_over=True, victory=False):
+                print('That was your last step, before you heard the BOOM.')
+            case _:
+                pass
