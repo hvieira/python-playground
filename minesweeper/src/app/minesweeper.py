@@ -48,10 +48,10 @@ class MineSweeperCell():
         return self.num_adjacent_mines > 0
 
     def print_to_stdout(self, reveal_all=False) -> None:
-        if reveal_all or self.revealed:
-            if self.flagged:
-                print('F', end='')
-            elif self.mined:
+        if self.flagged:
+            print('F', end='')
+        elif reveal_all or self.revealed:
+            if self.mined:
                 print('X', end='')
             else:
                 print(self.num_adjacent_mines, end='')
@@ -199,8 +199,7 @@ class MineSweeperBoard():
         return MineSweeperBoard(size, board_cells)
         
 
-if __name__ == "main":
-
+if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument('size', type=int, metavar='S', help='size of the board (square)')
     argparser.add_argument('mines', type=int, metavar='M', help='size of the board (square)')
@@ -208,20 +207,38 @@ if __name__ == "main":
     parsed_args = argparser.parse_args()
 
     board = MineSweeperBoard.create(parsed_args.size, parsed_args.mines)
+    # this is just to help debug
     board.print_to_stdout(reveal_all=True)
 
+    game_over = False
 
-    input = input('Enter coordinates in form [x,y] to reveal:')
-    raw_coords = input.split(',')
-    if len(raw_coords) != 2:
-        raise RuntimeError(f'Coordinates in wrong format {input}')
+    while(not game_over):
+        raw_command = input('Enter command in form [C,X,Y] where C is a command: F (flag), U (unflag), R (reveal) and X,Y are coordinates (0 index):')
+        command = raw_command.split(',')
+        if len(command) != 3:
+            raise RuntimeError(f'Coordinates in wrong format {input}')
 
-    x = int(raw_coords[0])
-    y = int(raw_coords[1])
+        x = int(command[1])
+        y = int(command[2])
+        match(command[0]):
+            case 'R':
+                try:
+                    board.reveal(x, y)
+                except PickedMineException:
+                    print('BOOM!')
+            case 'F':
+                try:
+                    board.flag(x, y)
+                except UnsupportedMove:
+                    print('unsupported move!')
+            case 'U':
+                try:
+                    board.unflag(x, y)
+                except UnsupportedMove:
+                    print('unsupported move!')
+            case _:
+                print('Invalid command')
 
-    try:
-        board.reveal(x, y)
-    except PickedMineException:
-        print('BOOM!')        
+        board.print_to_stdout()
 
-    board.print_to_stdout()
+        game_over = board.is_game_over().game_over
