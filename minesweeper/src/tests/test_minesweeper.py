@@ -15,19 +15,19 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjancent_mines=0),
-                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjancent_mines=0),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjancent_mines=0),
-                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             }
         })
 
@@ -42,19 +42,19 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, num_adjancent_mines=2),
-                1: MineSweeperCell(x=0, y=1, mined=True, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjancent_mines=1),
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, num_adjacent_mines=2),
+                1: MineSweeperCell(x=0, y=1, mined=True, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=1),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=True, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=3),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjancent_mines=2),
+                0: MineSweeperCell(x=1, y=0, mined=True, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=3),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=2),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjancent_mines=2),
-                2: MineSweeperCell(x=2, y=2, mined=True, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=2),
+                2: MineSweeperCell(x=2, y=2, mined=True, revealed=False, num_adjacent_mines=0),
             }
         })
 
@@ -70,19 +70,19 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjancent_mines=0),
-                1: MineSweeperCell(x=0, y=1, mined=False, revealed=True, num_adjancent_mines=1),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=True, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjancent_mines=0),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjancent_mines=0),
-                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             }
         })
 
@@ -96,19 +96,19 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, num_adjancent_mines=2),
-                1: MineSweeperCell(x=0, y=1, mined=True, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjancent_mines=1),
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, num_adjacent_mines=2),
+                1: MineSweeperCell(x=0, y=1, mined=True, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=1),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=True, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=2),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjancent_mines=1),
+                0: MineSweeperCell(x=1, y=0, mined=True, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=2),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=1),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             }
         })
 
@@ -122,19 +122,19 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjancent_mines=0),
-                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=True, num_adjancent_mines=0),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=True, num_adjancent_mines=0),
-                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=True, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=True, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             }
         })
 
@@ -148,19 +148,19 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjancent_mines=2),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjacent_mines=2),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=True, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=2),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=1, y=0, mined=True, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=2),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
             }
         })
 
@@ -176,18 +176,18 @@ class TestMineSweeperBoard:
 
         assert board == MineSweeperBoard(size=board_size, cells={
             0: {
-                0: MineSweeperCell(x=0, y=0, mined=True, revealed=True, num_adjancent_mines=0),
-                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=True, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             },
             1: {
-                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjancent_mines=1),
-                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjancent_mines=1),
-                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             },
             2:{
-                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjancent_mines=0),
-                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjancent_mines=0),
-                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjancent_mines=0),
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             }
         })
