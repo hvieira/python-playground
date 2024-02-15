@@ -32,6 +32,12 @@ class MineSweeperCell():
             raise UnsupportedMove("Cell is already revealed")
         else:
             return dataclasses.replace(self, flagged = True)
+        
+    def unflag(self) -> typing_extensions.Self:
+        if self.revealed:
+            raise UnsupportedMove("Cell is already revealed")
+        else:
+            return dataclasses.replace(self, flagged = False)
     
     def has_adjacent_mines(self) -> bool:
         return self.num_adjacent_mines > 0
@@ -70,6 +76,9 @@ class MineSweeperBoard():
 
     def flag(self: typing_extensions.Self, x: int, y: int):
         self.update_cell(x, y, lambda cell : cell.flag())
+
+    def unflag(self: typing_extensions.Self, x: int, y: int):
+        self.update_cell(x, y, lambda cell : cell.unflag())
 
     def update_cell(self: typing_extensions.Self, 
                     x: int, 

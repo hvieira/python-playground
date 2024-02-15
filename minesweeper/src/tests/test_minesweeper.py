@@ -246,7 +246,7 @@ class TestMineSweeperBoard:
             }
         })
 
-    def test_on_flag_a_revelaed_cell_raise_error(self):
+    def test_on_flag_a_revealed_cell_raise_error(self):
         board = MineSweeperBoard(size=1, cells={
             0: {
                 0: MineSweeperCell(x=0, y=0, mined=False, revealed=True, num_adjacent_mines=0),
@@ -279,11 +279,52 @@ class TestMineSweeperBoard:
         with pytest.raises(UnsupportedMove):
             board.reveal(0, 0)
 
+        # assert state has not been changed
         assert board == MineSweeperBoard(size=1, cells={
             0: {
                 0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
             }
         })
+
+    def test_on_unflag_a_flagged_cell_unflag_the_cell(self):
+        board = MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
+            }
+        })
+        
+        board.unflag(0, 0)
+
+        assert board == MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=False, num_adjacent_mines=0),
+            }
+        })
+
+    def test_on_unflag_an_unflagged_cell_is_noop(self):
+        board = MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=False, num_adjacent_mines=0),
+            }
+        })
+        
+        board.unflag(0, 0)
+
+        assert board == MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=False, num_adjacent_mines=0),
+            }
+        })
+
+    def test_on_unflag_a_revealed_cell_raise_error(self):
+        board = MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=True, flagged=False, num_adjacent_mines=0),
+            }
+        })
+        
+        with pytest.raises(UnsupportedMove):
+            board.unflag(x=0, y=0)
 
     # TODO end game states
 
