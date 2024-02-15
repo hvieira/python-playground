@@ -8,6 +8,9 @@ import random
 class PickedMineException(Exception):
     pass
 
+class UnsupportedMove(Exception):
+    pass
+
 
 @dataclasses.dataclass
 class MineSweeperCell():
@@ -16,16 +19,28 @@ class MineSweeperCell():
     mined: bool
     revealed: bool
     num_adjacent_mines: int
+    flagged: bool = False
 
     def reveal(self) -> typing_extensions.Self:
-        return dataclasses.replace(self, revealed = True)
+        if self.flagged:
+            raise UnsupportedMove("Cell is flagged")
+        else:
+            return dataclasses.replace(self, revealed = True)
+    
+    def flag(self) -> typing_extensions.Self:
+        if self.revealed:
+            raise UnsupportedMove("Cell is already revealed")
+        else:
+            return dataclasses.replace(self, flagged = True)
     
     def has_adjacent_mines(self) -> bool:
         return self.num_adjacent_mines > 0
 
     def print_to_stdout(self, reveal_all=False) -> None:
         if reveal_all or self.revealed:
-            if self.mined:
+            if self.flagged:
+                print('F', end='')
+            elif self.mined:
                 print('X', end='')
             else:
                 print(self.num_adjacent_mines, end='')
@@ -44,7 +59,7 @@ class MineSweeperBoard():
                 self.cells[x][y].print_to_stdout(reveal_all=reveal_all)
             print()
 
-    def reveal(self: typing_extensions.Self, x: int, y: int) -> typing_extensions.Self:
+    def reveal(self: typing_extensions.Self, x: int, y: int):
         revealed_cell = self.update_cell(x, y, lambda cell : cell.reveal())
 
         if revealed_cell.mined:
@@ -52,6 +67,9 @@ class MineSweeperBoard():
 
         if not revealed_cell.has_adjacent_mines():
             self._reveal_other_safe_cells(revealed_cell)
+
+    def flag(self: typing_extensions.Self, x: int, y: int):
+        self.update_cell(x, y, lambda cell : cell.flag())
 
     def update_cell(self: typing_extensions.Self, 
                     x: int, 

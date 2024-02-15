@@ -1,4 +1,4 @@
-from app.minesweeper import MineSweeperCell, MineSweeperBoard, PickedMineException
+from app.minesweeper import MineSweeperCell, MineSweeperBoard, PickedMineException, UnsupportedMove
 
 from unittest.mock import patch
 import pytest
@@ -191,3 +191,100 @@ class TestMineSweeperBoard:
                 2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
             }
         })
+
+    @patch("random.sample")
+    def test_on_flag_update_cell_to_flagged(self, mock_sample):
+        board_size = 3
+        
+        mock_sample.return_value = [0]
+        board = MineSweeperBoard.create(board_size, 1)
+        
+        board.flag(x=1, y=1)
+
+        assert board == MineSweeperBoard(size=board_size, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            },
+            1: {
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, flagged=True, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            },
+            2:{
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            }
+        })
+
+    @patch("random.sample")
+    def test_flag_a_mined_cell(self, mock_sample):
+        board_size = 3
+        
+        mock_sample.return_value = [0]
+        board = MineSweeperBoard.create(board_size, 1)
+        
+        board.flag(x=0, y=0)
+
+        assert board == MineSweeperBoard(size=board_size, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=True, revealed=False, flagged=True, num_adjacent_mines=0),
+                1: MineSweeperCell(x=0, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=0, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            },
+            1: {
+                0: MineSweeperCell(x=1, y=0, mined=False, revealed=False, num_adjacent_mines=1),
+                1: MineSweeperCell(x=1, y=1, mined=False, revealed=False, num_adjacent_mines=1),
+                2: MineSweeperCell(x=1, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            },
+            2:{
+                0: MineSweeperCell(x=2, y=0, mined=False, revealed=False, num_adjacent_mines=0),
+                1: MineSweeperCell(x=2, y=1, mined=False, revealed=False, num_adjacent_mines=0),
+                2: MineSweeperCell(x=2, y=2, mined=False, revealed=False, num_adjacent_mines=0),
+            }
+        })
+
+    def test_on_flag_a_revelaed_cell_raise_error(self):
+        board = MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=True, num_adjacent_mines=0),
+            }
+        })
+        
+        with pytest.raises(UnsupportedMove):
+            board.flag(x=0, y=0)
+
+    def test_on_flag_a_flagged_cell_is_a_noop(self):
+        board = MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
+            }
+        })
+        
+        assert board == MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
+            }
+        })
+
+    def test_on_reveal_a_flagged_cell_is_an_unsupported_move(self):
+        board = MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
+            }
+        })
+        
+        with pytest.raises(UnsupportedMove):
+            board.reveal(0, 0)
+
+        assert board == MineSweeperBoard(size=1, cells={
+            0: {
+                0: MineSweeperCell(x=0, y=0, mined=False, revealed=False, flagged=True, num_adjacent_mines=0),
+            }
+        })
+
+    # TODO end game states
+
+    # TODO immutability?
