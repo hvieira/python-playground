@@ -330,8 +330,6 @@ class TestMineSweeperBoard:
             Coordinates(x=2, y=2): MineSweeperCell(x=2, y=2, mined=False, revealed=True, num_adjacent_mines=0),
         })
 
-
-    # TODO end game states
     def test_game_is_over_if_a_mine_was_revealed(self):
         assert MineSweeperBoard(size=1, cells={
             Coordinates(x=0, y=0): MineSweeperCell(x=0, y=0, mined=True, revealed=True, num_adjacent_mines=0),

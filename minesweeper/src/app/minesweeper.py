@@ -73,26 +73,26 @@ class MineSweeperBoard():
             print()
 
     def reveal(self: typing_extensions.Self, x: int, y: int):
-        revealed_cell = self.update_cell(x, y, lambda cell : cell.reveal())
+        coords = Coordinates(x, y)
+        revealed_cell = self.update_cell(coords, lambda cell : cell.reveal())
 
         if revealed_cell.mined:
             return
 
         if not revealed_cell.has_adjacent_mines():
-            self._reveal_other_safe_cells(revealed_cell.x, revealed_cell.y)
+            self._reveal_other_safe_cells(coords)
 
     def flag(self: typing_extensions.Self, x: int, y: int):
-        self.update_cell(x, y, lambda cell : cell.flag())
+        self.update_cell(Coordinates(x, y), lambda cell : cell.flag())
 
     def unflag(self: typing_extensions.Self, x: int, y: int):
-        self.update_cell(x, y, lambda cell : cell.unflag())
+        self.update_cell(Coordinates(x, y), lambda cell : cell.unflag())
 
     def update_cell(self: typing_extensions.Self, 
-                    x: int, 
-                    y: int, 
+                    coordinates: Coordinates, 
                     update_fn: typing.Callable[[MineSweeperCell], MineSweeperCell]) -> None:
-        updated = update_fn(self.cells[Coordinates(x, y)])
-        self.cells[Coordinates(x, y)] = updated
+        updated = update_fn(self.cells[coordinates])
+        self.cells[coordinates] = updated
 
         return updated
 
@@ -108,56 +108,59 @@ class MineSweeperBoard():
         num_non_mine_cells_revealed = 0
         for x in range(0, self.size):
             for y in range(0, self.size):
-                if self.cells[Coordinates(x, y)].mined:
+                coords = Coordinates(x, y)
+                if self.cells[coords].mined:
                     num_mines += 1
                     # revealed a mine. game is lost
-                    if self.cells[Coordinates(x, y)].revealed:
+                    if self.cells[coords].revealed:
                         return GameResult(game_over=True, victory=False)
                     
-                    if not self.cells[Coordinates(x, y)].flagged:
+                    if not self.cells[coords].flagged:
                         num_mines_non_flagged += 1
                 else:
-                    if self.cells[Coordinates(x, y)].revealed:
+                    if self.cells[coords].revealed:
                         num_non_mine_cells_revealed += 1
 
         success = num_mines_non_flagged == 0 and (total_cells-num_mines) == num_non_mine_cells_revealed
         return GameResult(game_over=success, victory=success)
 
-    def _reveal_other_safe_cells(self, x, y):
-        to_explore = MineSweeperBoard._adjacent_coordinates(x, y, self.cells)
-        explored = {(x, y)}
+    def _reveal_other_safe_cells(self, start_coordinates: Coordinates):
+        to_explore = MineSweeperBoard._adjacent_coordinates(start_coordinates, self.cells)
+        explored = {start_coordinates}
         while len(to_explore) > 0:
-            x, y = to_explore.pop()
-            explored.add((x,y))
+            coords = to_explore.pop()
+            explored.add(coords)
             
             # if this is a safe/blank cell (not flagged), reveal the adjacent ones
-            if not self.cells[Coordinates(x, y)].has_adjacent_mines() and not self.cells[Coordinates(x, y)].flagged:
-                self.update_cell(x, y, lambda cell : cell.reveal())
+            if not self.cells[coords].has_adjacent_mines() and not self.cells[coords].flagged:
+                self.update_cell(coords, lambda cell : cell.reveal())
 
                 # do not explore what it has been explored already (i.e. avoid non ending loop)
-                adjacent_coordinates = MineSweeperBoard._adjacent_coordinates(x, y, self.cells)
+                adjacent_coordinates = MineSweeperBoard._adjacent_coordinates(coords, self.cells)
                 to_explore = to_explore | (adjacent_coordinates - explored)
 
 
     @staticmethod 
-    def _adjacent_coordinates(x, y, board_cells):
+    def _adjacent_coordinates(center: Coordinates, 
+                              board_cells: typing.Mapping[Coordinates, MineSweeperCell]) -> typing.MutableSet[Coordinates]:
         result = set()
-        for ax in [x-1,x,x+1]:
-            for ay in [y-1,y,y+1]:
+        for ax in [center.x-1,center.x,center.x+1]:
+            for ay in [center.y-1,center.y,center.y+1]:
+                coordinates = Coordinates(x=ax, y=ay)
                 try:
-                    if board_cells[Coordinates(ax, ay)]:
-                        result.add((ax,ay))
+                    if board_cells[coordinates]:
+                        result.add(coordinates)
                 except KeyError:
                     continue
         
-        result.remove((x,y))
+        result.remove(center)
         return result
 
     @staticmethod 
-    def _num_of_adjacent_mines(x, y, board_cells):
+    def _num_of_adjacent_mines(center: Coordinates, board_cells):
         num_mines = 0
-        for x,y in MineSweeperBoard._adjacent_coordinates(x, y, board_cells): 
-            if board_cells[Coordinates(x, y)].mined:
+        for coordinates in MineSweeperBoard._adjacent_coordinates(center, board_cells): 
+            if board_cells[coordinates].mined:
                 num_mines += 1
         return num_mines
 
@@ -186,15 +189,17 @@ class MineSweeperBoard():
             x = cells_array[i].x
             y = cells_array[i].y
 
-            mined_cell = dataclasses.replace(board_cells[Coordinates(x, y)], mined=True)
-            board_cells[Coordinates(x, y)] = mined_cell
+            coords = Coordinates(x, y)
+            mined_cell = dataclasses.replace(board_cells[coords], mined=True)
+            board_cells[coords] = mined_cell
 
         # scan board to define number of adjacent mines
         for x in range(0, size):
             for y in range(0, size):
-                num_of_adjacent_mines = MineSweeperBoard._num_of_adjacent_mines(x, y, board_cells)
-                updated_cell = dataclasses.replace(board_cells[Coordinates(x, y)], num_adjacent_mines=num_of_adjacent_mines)
-                board_cells[Coordinates(x, y)] = updated_cell
+                coords = Coordinates(x, y)
+                num_of_adjacent_mines = MineSweeperBoard._num_of_adjacent_mines(coords, board_cells)
+                updated_cell = dataclasses.replace(board_cells[coords], num_adjacent_mines=num_of_adjacent_mines)
+                board_cells[coords] = updated_cell
 
         return MineSweeperBoard(size, board_cells)
         
