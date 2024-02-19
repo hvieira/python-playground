@@ -1,4 +1,4 @@
-from app.minesweeper import MineSweeperCell, MineSweeperBoard, UnsupportedMove, GameResult
+from app.minesweeper import MineSweeperCell, MineSweeperBoard, UnsupportedMoveException, GameResult
 
 from unittest.mock import patch
 import pytest
@@ -254,7 +254,7 @@ class TestMineSweeperBoard:
             }
         })
         
-        with pytest.raises(UnsupportedMove):
+        with pytest.raises(UnsupportedMoveException):
             board.flag(x=0, y=0)
 
     def test_on_flag_a_flagged_cell_is_a_noop(self):
@@ -277,7 +277,7 @@ class TestMineSweeperBoard:
             }
         })
         
-        with pytest.raises(UnsupportedMove):
+        with pytest.raises(UnsupportedMoveException):
             board.reveal(0, 0)
 
         # assert state has not been changed
@@ -324,7 +324,7 @@ class TestMineSweeperBoard:
             }
         })
         
-        with pytest.raises(UnsupportedMove):
+        with pytest.raises(UnsupportedMoveException):
             board.unflag(x=0, y=0)
 
     @patch("random.sample")

@@ -5,7 +5,7 @@ import typing_extensions
 import random
 
 
-class UnsupportedMove(Exception):
+class UnsupportedMoveException(Exception):
     pass
 
 
@@ -25,19 +25,19 @@ class MineSweeperCell():
 
     def reveal(self) -> typing_extensions.Self:
         if self.flagged:
-            raise UnsupportedMove("Cell is flagged")
+            raise UnsupportedMoveException("Cell is flagged")
         else:
             return dataclasses.replace(self, revealed = True)
     
     def flag(self) -> typing_extensions.Self:
         if self.revealed:
-            raise UnsupportedMove("Cell is already revealed")
+            raise UnsupportedMoveException("Cell is already revealed")
         else:
             return dataclasses.replace(self, flagged = True)
         
     def unflag(self) -> typing_extensions.Self:
         if self.revealed:
-            raise UnsupportedMove("Cell is already revealed")
+            raise UnsupportedMoveException("Cell is already revealed")
         else:
             return dataclasses.replace(self, flagged = False)
     
@@ -223,12 +223,12 @@ if __name__ == "__main__":
             case 'F':
                 try:
                     board.flag(x, y)
-                except UnsupportedMove:
+                except UnsupportedMoveException:
                     print('unsupported move!')
             case 'U':
                 try:
                     board.unflag(x, y)
-                except UnsupportedMove:
+                except UnsupportedMoveException:
                     print('unsupported move!')
             case _:
                 print('Invalid command')
