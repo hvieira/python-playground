@@ -74,7 +74,7 @@ class MineSweeperBoard():
             return
 
         if not revealed_cell.has_adjacent_mines():
-            self._reveal_other_safe_cells(revealed_cell)
+            self._reveal_other_safe_cells(revealed_cell.x, revealed_cell.y)
 
     def flag(self: typing_extensions.Self, x: int, y: int):
         self.update_cell(x, y, lambda cell : cell.flag())
@@ -118,9 +118,9 @@ class MineSweeperBoard():
         success = num_mines_non_flagged == 0 and (total_cells-num_mines) == num_non_mine_cells_revealed
         return GameResult(game_over=success, victory=success)
 
-    def _reveal_other_safe_cells(self, cell):
-        to_explore = MineSweeperBoard._adjacent_coordinates(cell.x, cell.y, self.cells)
-        explored = {(cell.x, cell.y)}
+    def _reveal_other_safe_cells(self, x, y):
+        to_explore = MineSweeperBoard._adjacent_coordinates(x, y, self.cells)
+        explored = {(x, y)}
         while len(to_explore) > 0:
             x, y = to_explore.pop()
             explored.add((x,y))
