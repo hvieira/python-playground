@@ -6,8 +6,8 @@ authors = ["hvieira"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-Flask = "3.0.3"
+python = "^3.10.13"
+Flask = "^3.0.3"
 
 
 [build-system]
@@ -17,3 +17,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
+coverage = "^7.6.1"

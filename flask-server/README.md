@@ -22,3 +22,10 @@ After activating the virtual env:
 ```sh
 pytest
 ```
+
+Run with coverage:
+```sh
+poetry run coverage run --source=flask_server -m pytest  
+poetry run coverage report
+```
+ 
