@@ -1,12 +1,12 @@
 import os
 import tempfile
 
+from flask.testing import FlaskClient
 import pytest
 from flask_server import create_app
-from flask_server.db import get_db, init_db
+from flask_server.db import init_db, dbAlchemy
 
-with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
-    _data_sql = f.read().decode('utf8')
+from sqlalchemy import text
 
 
 @pytest.fixture
@@ -20,7 +20,6 @@ def app():
 
     with app.app_context():
         init_db()
-        get_db().executescript(_data_sql)
 
     yield app
 
@@ -29,7 +28,7 @@ def app():
 
 
 @pytest.fixture
-def client(app):
+def client(app) -> FlaskClient:
     return app.test_client()
 
 
@@ -41,6 +40,12 @@ def runner(app):
 class AuthActions(object):
     def __init__(self, client):
         self._client = client
+
+    def register(self, username='test', password='test'):
+        return self._client.post(
+            '/auth/register',
+            data={'username': username, 'password': password}
+        )
 
     def login(self, username='test', password='test'):
         return self._client.post(

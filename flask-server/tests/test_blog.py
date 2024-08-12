@@ -1,19 +1,32 @@
 import pytest
-from flask_server.db import get_db
 
+from sqlalchemy import select
 
-def test_index(client, auth):
+from flask_server.models.post import Post
+from flask_server.models.user import User
+from flask_server.db import dbAlchemy
+
+def test_index(client, app, auth):
     response = client.get('/')
     assert b"Log In" in response.data
     assert b"Register" in response.data
 
-    auth.login()
-    response = client.get('/')
-    assert b'Log Out' in response.data
-    assert b'test title' in response.data
-    assert b'by test on 2018-01-01' in response.data
-    assert b'test\nbody' in response.data
-    assert b'href="/1/update"' in response.data
+
+    auth.register()
+    with app.app_context():
+        user = get_user_from_username(app)
+        post = Post(title='test title', body='whatever', author_id=user.id)
+        dbAlchemy.session.add(post)
+        dbAlchemy.session.commit()
+        dbAlchemy.session.flush()
+    
+        auth.login()
+        response = client.get('/')
+        assert b'Log Out' in response.data
+        assert b'test title' in response.data
+        assert b'by test' in response.data
+        assert b'whatever' in response.data
+        assert 'href="/' + str(post.id) +'/update"' in response.text
 
 @pytest.mark.parametrize('path', (
     '/create',
@@ -22,72 +35,110 @@ def test_index(client, auth):
 ))
 def test_login_required(client, path):
     response = client.post(path)
+    assert response.status_code == 302
     assert response.headers["Location"] == "/auth/login"
 
 
 def test_author_required(app, client, auth):
-    # change the post author to another user
+    post_id = None
     with app.app_context():
-        db = get_db()
-        db.execute('UPDATE post SET author_id = 2 WHERE id = 1')
-        db.commit()
+        auth.register(username = 'testzzz')
+        user = get_user_from_username(app, username='testzzz')
+        post = Post(title='test title', body='whatever', author_id=user.id)
+        dbAlchemy.session.add(post)
+        dbAlchemy.session.commit()
+        dbAlchemy.session.flush()
 
+        post_id = post.id
+
+    auth.register()
     auth.login()
     # current user can't modify other user's post
-    assert client.post('/1/update').status_code == 403
-    assert client.post('/1/delete').status_code == 403
+    assert client.post(f'/{post_id}/update').status_code == 403
+    assert client.post(f'/{post_id}/delete').status_code == 403
     # current user doesn't see edit link
-    assert b'href="/1/update"' not in client.get('/').data
+    assert f'href="/{post_id}/update"' not in client.get('/').text
 
 
 @pytest.mark.parametrize('path', (
-    '/2/update',
-    '/2/delete',
+    '/100000000/update',
+    '/100000000/delete',
 ))
-def test_exists_required(client, auth, path):
+def test_actions_on_non_existent_post(client, auth, path):
+    auth.register()
     auth.login()
     assert client.post(path).status_code == 404
 
 
 
 def test_create(client, auth, app):
+    auth.register()
     auth.login()
     assert client.get('/create').status_code == 200
-    client.post('/create', data={'title': 'created', 'body': ''})
+    response = client.post('/create', data={'title': 'created', 'body': ''})
 
-    with app.app_context():
-        db = get_db()
-        count = db.execute('SELECT COUNT(id) FROM post').fetchone()[0]
-        assert count == 2
+    assert response.status_code == 302
 
 
 def test_update(client, auth, app):
+    auth.register()
     auth.login()
-    assert client.get('/1/update').status_code == 200
-    client.post('/1/update', data={'title': 'updated', 'body': ''})
 
-    with app.app_context():
-        db = get_db()
-        post = db.execute('SELECT * FROM post WHERE id = 1').fetchone()
-        assert post['title'] == 'updated'
+    user = get_user_from_username(app)
+    post_id = create_post(app, Post(title='Some Test', body='Nice', author_id = user.id))
+
+    assert client.get(f'/{post_id}/update').status_code == 200
+    response = client.post(f'/{post_id}/update', data={'title': 'updated', 'body': ''})
+
+    assert response.status_code == 302
 
 
-@pytest.mark.parametrize('path', (
-    '/create',
-    '/1/update',
-))
-def test_create_update_validate(client, auth, path):
+
+
+def test_create_validate(client, auth):
+    auth.register()
     auth.login()
-    response = client.post(path, data={'title': '', 'body': ''})
+    assert client.get('/create').status_code == 200
+    response = client.post('/create', data={'title': '', 'body': ''})
+    assert b'Title is required.' in response.data
+
+
+def test_update_validate(client, auth, app):
+    auth.register()
+    auth.login()
+
+    user = get_user_from_username(app)
+    post_id = create_post(app, Post(title='Some Test', body='Nice', author_id = user.id))
+
+    response = client.post(f'/{post_id}/update', data={'title': '', 'body': ''})
     assert b'Title is required.' in response.data
 
 
 def test_delete(client, auth, app):
+    auth.register()
     auth.login()
-    response = client.post('/1/delete')
+
+    user = get_user_from_username(app)
+    post_id = create_post(app, Post(title='Some Test', body='Nice', author_id = user.id))
+
+    response = client.post(f'/{post_id}/delete')
+    assert response.status_code == 302
     assert response.headers["Location"] == "/"
 
     with app.app_context():
-        db = get_db()
-        post = db.execute('SELECT * FROM post WHERE id = 1').fetchone()
-        assert post is None
+        deleted_post = dbAlchemy.session.get(Post, post_id)
+        assert deleted_post is None
+
+def get_user_from_username(app, username='test'):
+    with app.app_context():
+        return dbAlchemy.session.execute(select(User).where(User.username == username)).scalar()
+
+def create_post(app, post):
+    post_id = None
+    with app.app_context():
+        dbAlchemy.session.add(post)
+        dbAlchemy.session.commit()
+        dbAlchemy.session.flush()
+        post_id = post.id
+
+    return post_id

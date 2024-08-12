@@ -1,38 +1,40 @@
-import sqlite3
-
 import click
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+from sqlalchemy import text
 from flask import current_app, g
 
 
-def get_db():
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
-
-    return g.db
+class Base(DeclarativeBase):
+  pass
 
 
-def close_db(e=None):
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
+dbAlchemy = SQLAlchemy(model_class=Base)
 
 
 def init_db():
-    db = get_db()
-
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
-
-
-def init_app(app):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
-
+    with dbAlchemy.engine.begin() as conn:
+       conn.execute(text('DROP TABLE IF EXISTS user'))
+       conn.execute(text('DROP TABLE IF EXISTS post'))
+       conn.execute(text('''
+CREATE TABLE user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL
+)
+       '''))
+       conn.execute(text('''
+CREATE TABLE post (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  FOREIGN KEY (author_id) REFERENCES user (id)
+)
+                         '''))
 
 @click.command('init-db')
 def init_db_command():

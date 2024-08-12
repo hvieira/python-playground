@@ -7,7 +7,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///flaskr.sqlite'
     )
 
     if test_config is None:
@@ -20,8 +20,10 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from . import db
-    db.init_app(app)
+    from .db import dbAlchemy, init_db_command
+    dbAlchemy.init_app(app)
+
+    app.cli.add_command(init_db_command)
 
     from . import auth
     app.register_blueprint(auth.bp)

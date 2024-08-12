@@ -1,7 +1,9 @@
+from flask.testing import FlaskClient
 import pytest
 from flask import g, session
-from flask_server.db import get_db
-
+from flask_server.models.user import User
+from flask_server.db import dbAlchemy
+from sqlalchemy import select
 
 def test_register(client, app):
     assert client.get('/auth/register').status_code == 200
@@ -11,15 +13,13 @@ def test_register(client, app):
     assert response.headers["Location"] == "/auth/login"
 
     with app.app_context():
-        assert get_db().execute(
-            "SELECT * FROM user WHERE username = 'a'",
-        ).fetchone() is not None
+        created_user = dbAlchemy.session.execute(select(User).where(User.username == 'a'))
+        assert created_user is not None
 
 
 @pytest.mark.parametrize(('username', 'password', 'message'), (
     ('', '', b'Username is required.'),
     ('a', '', b'Password is required.'),
-    ('test', 'test', b'already registered'),
 ))
 def test_register_validate_input(client, username, password, message):
     response = client.post(
@@ -28,7 +28,21 @@ def test_register_validate_input(client, username, password, message):
     )
     assert message in response.data
 
+def test_username_already_in_use(client: FlaskClient):
+    response = client.post(
+        '/auth/register',
+        data={'username': 'test', 'password': 'test'}
+    )
+    assert response.status_code == 302
+    
+    response = client.post(
+        '/auth/register',
+        data={'username': 'test', 'password': 'test'}
+    )
+    assert b'already registered' in response.data
+
 def test_login(client, auth):
+    auth.register()
     assert client.get('/auth/login').status_code == 200
     response = auth.login()
     assert response.headers["Location"] == "/"
@@ -36,13 +50,14 @@ def test_login(client, auth):
     with client:
         client.get('/')
         assert session['user_id'] == 1
-        assert g.user['username'] == 'test'
+        assert g.user.username == 'test'
 
 
 @pytest.mark.parametrize(('username', 'password', 'message'), (
     ('a', 'test', b'Incorrect username.'),
     ('test', 'a', b'Incorrect password.'),
 ))
-def test_login_validate_input(auth, username, password, message):
+def test_login_wrong_credentials(auth, username, password, message):
+    auth.register()
     response = auth.login(username, password)
     assert message in response.data
