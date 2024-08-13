@@ -24,7 +24,7 @@ CREATE TABLE user (
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL
 )
-       '''))
+'''))
        conn.execute(text('''
 CREATE TABLE post (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +34,7 @@ CREATE TABLE post (
   body TEXT NOT NULL,
   FOREIGN KEY (author_id) REFERENCES user (id)
 )
-                         '''))
+'''))
 
 @click.command('init-db')
 def init_db_command():

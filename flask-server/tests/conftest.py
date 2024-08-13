@@ -13,9 +13,10 @@ from sqlalchemy import text
 def app():
     db_fd, db_path = tempfile.mkstemp()
 
-    app = create_app({
+    app = create_app(test_config={
         'TESTING': True,
-        'DATABASE': db_path,
+        'SECRET_KEY': 'dev',
+        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
     })
 
     with app.app_context():
