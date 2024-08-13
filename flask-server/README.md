@@ -5,6 +5,8 @@ A working sample of a server with Flask
 - Setup postgresSQL as DB
 - Check Alembic for db migrations and see if its useful and use it (if it is good)
 - Create an API with separate auth to the tutorial. Use posts and users all the same
+    - (to simplify) get blackbox tokens for auth with user credentials. Allow users to register for this
+    - store the tokens in db, but use redis as a cache for this, with proper TTL and so on
 - Have a react app working with the backend. Try https://pypi.org/project/flask-vite/
 
 ## Running
