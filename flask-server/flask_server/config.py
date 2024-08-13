@@ -22,4 +22,7 @@ class Configuration():
     def SECRET_KEY(self):
         return self.secret_key
 
-configuration = Configuration('dev','sqlite:///flaskr.sqlite', sql_logging=True)
+configuration = Configuration(
+    secret_key='dev',
+    db_uri='sqlite:///flaskr.sqlite', 
+    sql_logging=True)
