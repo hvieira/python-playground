@@ -1,3 +1,5 @@
+import os
+
 class Configuration():
     
     def __init__(self, secret_key: str, db_uri: str, testing = False, sql_logging = False):
@@ -22,7 +24,11 @@ class Configuration():
     def SECRET_KEY(self):
         return self.secret_key
 
+
+# default here only for simplicity - there should be no default
+db_uri = os.getenv('FLASK_SERVER_DB_URI', 'postgresql://root:root@localhost:5432/mydb')
+
 configuration = Configuration(
     secret_key='dev',
-    db_uri='sqlite:///flaskr.sqlite', 
+    db_uri=db_uri, 
     sql_logging=True)

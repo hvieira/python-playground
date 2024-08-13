@@ -16,23 +16,23 @@ dbAlchemy = SQLAlchemy(model_class=Base)
 
 def init_db():
     with dbAlchemy.engine.begin() as conn:
-       conn.execute(text('DROP TABLE IF EXISTS user'))
        conn.execute(text('DROP TABLE IF EXISTS post'))
+       conn.execute(text('DROP TABLE IF EXISTS "user"'))
        conn.execute(text('''
-CREATE TABLE user (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE "user" (
+  id serial PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL
 )
 '''))
        conn.execute(text('''
 CREATE TABLE post (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id serial PRIMARY KEY,
   author_id INTEGER NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
-  FOREIGN KEY (author_id) REFERENCES user (id)
+  FOREIGN KEY (author_id) REFERENCES "user" (id)
 )
 '''))
 

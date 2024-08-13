@@ -1,0 +1,26 @@
+version: '3'
+services:
+  db:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=mydb
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+  # an alternative to this would be to use "docker-entrypoint-initdb.d" scripts - https://hub.docker.com/_/postgres (section initialization scripts)
+  test-db:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=test
+    ports:
+      - 5433:5432
+
+volumes:
+  pgdata:
+    driver: local

@@ -6,16 +6,16 @@ import pytest
 from flask_server import create_app
 from flask_server.db import init_db, dbAlchemy
 from flask_server.config import Configuration
-from sqlalchemy import text
 
 
 @pytest.fixture
 def app():
     db_fd, db_path = tempfile.mkstemp()
 
+    # TODO run tests inside docker network
     app = create_app(test_config=Configuration(
         secret_key='dev', 
-        db_uri=f'sqlite:///{db_path}', 
+        db_uri=f'postgresql://root:root@localhost:5433/test', 
         sql_logging=True, 
         testing=True))
 
