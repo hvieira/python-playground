@@ -5,7 +5,7 @@ from flask.testing import FlaskClient
 import pytest
 from flask_server import create_app
 from flask_server.db import init_db, dbAlchemy
-
+from flask_server.config import Configuration
 from sqlalchemy import text
 
 
@@ -13,11 +13,10 @@ from sqlalchemy import text
 def app():
     db_fd, db_path = tempfile.mkstemp()
 
-    app = create_app(test_config={
-        'TESTING': True,
-        'SECRET_KEY': 'dev',
-        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
-    })
+    app = create_app(test_config=Configuration(
+        'dev', 
+        f'sqlite:///{db_path}', 
+        sql_logging=True, testing=True))
 
     with app.app_context():
         init_db()
