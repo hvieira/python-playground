@@ -1,6 +1,10 @@
 # flask-server
 A working sample of a server with Flask
 
+## Tasks
+- Create an API with separate auth to the tutorial. Use posts and users all the same
+- Have a react app working with the backend. Try https://pypi.org/project/flask-vite/
+
 ## Running
 After activating the virtual env with:
 ```sh
