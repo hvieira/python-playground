@@ -10,6 +10,8 @@ A working sample of a server with Flask
 - Have a react app working with the backend. Try https://pypi.org/project/flask-vite/
 
 ## Running
+Make sure the database is running with `docker-compose up [-d]`
+
 After activating the virtual env with:
 ```sh
 poetry shell
@@ -22,10 +24,12 @@ poetry init
 
 run flask
 ```sh
-poetry run flask --app flask_server/main.py run
+poetry run flask --app flask_server run
 ```
 
 ## Tests
+Make sure the database is running with `docker-compose up [-d]`
+
 After activating the virtual env:
 ```sh
 pytest

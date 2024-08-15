@@ -1,10 +1,11 @@
 import os
+from flask import Flask
+import pytest
 import tempfile
 
 from flask.testing import FlaskClient
-import pytest
+
 from flask_server import create_app
-from flask_server.db import init_db, dbAlchemy
 from flask_server.config import Configuration
 
 
@@ -19,8 +20,7 @@ def app():
         sql_logging=True, 
         testing=True))
 
-    with app.app_context():
-        init_db()
+    init_db(app)
 
     yield app
 
@@ -61,3 +61,10 @@ class AuthActions(object):
 @pytest.fixture
 def auth(client):
     return AuthActions(client)
+
+
+def init_db(app: Flask):
+    from flask_server.db import dbAlchemy
+    with app.app_context():
+        dbAlchemy.drop_all()
+        dbAlchemy.create_all()

@@ -16,10 +16,8 @@ def create_app(test_config:Configuration = None):
     except OSError:
         pass
 
-    from .db import dbAlchemy, init_db_command
+    from .db import dbAlchemy
     dbAlchemy.init_app(app)
-
-    app.cli.add_command(init_db_command)
 
     from . import auth
     app.register_blueprint(auth.bp)
