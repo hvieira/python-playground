@@ -12,4 +12,4 @@ class Post(dbAlchemy.Model):
     created: Mapped[datetime] = mapped_column(default=func.current_timestamp())
     title: Mapped[str]
     body: Mapped[str]
-    author: Mapped[User] = relationship()
+    author: Mapped[User] = relationship(foreign_keys=[author_id])
