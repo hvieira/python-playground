@@ -26,4 +26,7 @@ def create_app(test_config:Configuration = None):
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')
 
+    from flask_server.api import auth
+    app.register_blueprint(auth.bp)
+
     return app

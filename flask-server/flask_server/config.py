@@ -23,6 +23,12 @@ class Configuration():
     @property
     def SECRET_KEY(self):
         return self.secret_key
+    
+    @property
+    def oauth_clients():
+        return {
+            'id': 'secret'
+        }
 
 
 # default here only for simplicity - there should be no default
