@@ -1,6 +1,9 @@
 # DB migrations
 Based on alembic - https://alembic.sqlalchemy.org
 
+## Create migrations
+`alembic revision -m <description>`
+
 ## Running migrations
 To run for the latest migration version
 ```sh
