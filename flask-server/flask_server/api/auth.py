@@ -32,7 +32,7 @@ def generate_token():
                 # TODO token length should be configurable - the longer the more "secure"
                 token = ''.join(random.choices(string.ascii_letters, k=20)),
                 # expiry should be configurable
-                expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+                expiry = _get_new_token_expiry_datetime()
             )
             dbAlchemy.session.add(token)
             dbAlchemy.session.commit()
@@ -43,4 +43,5 @@ def generate_token():
             # TODO implement
             pass
 
-    
+def _get_new_token_expiry_datetime() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)

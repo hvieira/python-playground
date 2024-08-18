@@ -21,3 +21,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
 coverage = "^7.6.1"
+freezegun = "~1.5.1"
