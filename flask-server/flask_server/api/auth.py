@@ -1,7 +1,4 @@
 
-import datetime
-import random
-import string
 from flask import (
     Blueprint, jsonify, request
 )
@@ -27,13 +24,7 @@ def generate_token():
         # TODO add a user "service" with these sort of functions for DRY purposes
         user = dbAlchemy.session.execute(select(User).where(User.username == token_request.username)).scalar()
         if user:
-            token = UserToken(
-                user_id = user.id,
-                # TODO token length should be configurable - the longer the more "secure"
-                token = ''.join(random.choices(string.ascii_letters, k=20)),
-                # expiry should be configurable
-                expiry = _get_new_token_expiry_datetime()
-            )
+            token = UserToken.create(user_id=user.id)
             dbAlchemy.session.add(token)
             dbAlchemy.session.commit()
 
@@ -42,6 +33,3 @@ def generate_token():
         else:
             # TODO implement
             pass
-
-def _get_new_token_expiry_datetime() -> datetime.datetime:
-    return datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
