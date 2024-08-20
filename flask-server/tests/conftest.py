@@ -16,9 +16,13 @@ def app():
     # TODO run tests inside docker network
     app = create_app(test_config=Configuration(
         secret_key='dev', 
-        db_uri=f'postgresql://root:root@localhost:5433/test', 
+        db_uri=f'postgresql://root:root@localhost:5433/test',
+        oauth_client_id='test_oauth_client_it',
+        oauth_client_secret='test_oauth_client_secretz',
         sql_logging=True, 
-        testing=True))
+        testing=True
+        )
+    )
 
     init_db(app)
 

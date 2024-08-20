@@ -12,7 +12,7 @@ class UserTokenResponse():
     expires_in: int
     token_type: str = 'Bearer'
 
-    # TODO create a mixin for this
+    # TODO create a mixin for this and replace all existing occurrences
     def to_dict(self) -> dict:
         return asdict(self)
     

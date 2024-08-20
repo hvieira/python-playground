@@ -10,6 +10,10 @@ from sqlalchemy import select
 from werkzeug.security import generate_password_hash
 
 
+###
+# requirements/tests based on https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/ 
+###
+
 @freeze_time('2024-08-13 12:17:11', tz_offset=0)
 @patch('random.choices')
 def test_get_oauth_token_password_grant(rnd_choices_mock: MagicMock,  
@@ -20,7 +24,7 @@ def test_get_oauth_token_password_grant(rnd_choices_mock: MagicMock,
     expected_token = 'blahblahblahblah'
     rnd_choices_mock.return_value = list(expected_token)
 
-    with app.app_context():
+    with app.app_context() as ctx:
         dbAlchemy.session.add(user)
         dbAlchemy.session.commit()
         dbAlchemy.session.flush()
@@ -29,8 +33,8 @@ def test_get_oauth_token_password_grant(rnd_choices_mock: MagicMock,
             'grant_type': 'password',
             'username': user.username,
             'password': plain_passwd,
-            'client_id': 'test',
-            'client_secret': 'bananas'
+            "client_id": ctx.app.config.get('OAUTH_CLIENT_ID'),
+            "client_secret": ctx.app.config.get('OAUTH_CLIENT_SECRET'),
         })
 
         assert response.status_code == 200
@@ -40,28 +44,30 @@ def test_get_oauth_token_password_grant(rnd_choices_mock: MagicMock,
             'expires_in': 60 * 60,
         }
 
-        user1Tokens = dbAlchemy.session.execute(select(UserToken).where(UserToken.user_id == user.id)).scalars().all()
-        assert len(user1Tokens) == 1
-        assert user1Tokens[0].user_id == user.id
-        assert user1Tokens[0].token == expected_token
-        assert user1Tokens[0].expiry == datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(hours=1)
+        userTokens = dbAlchemy.session.execute(select(UserToken).where(UserToken.user_id == user.id)).scalars().all()
+        assert len(userTokens) == 1
+        assert userTokens[0].user_id == user.id
+        assert userTokens[0].token == expected_token
+        assert userTokens[0].expiry == datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(hours=1)
 
 
-def test_get_oauth_token_password_non_existing_user(client: FlaskClient):
-    response = client.post('/oauth/token', json={
-        'grant_type': 'password',
-        'username': 'do not exist',
-        'password': 'do not exist passwd',
-        'client_id': 'test',
-        'client_secret': 'bananas'
-    })
+def test_get_oauth_token_password_non_existing_user(client: FlaskClient, app: Flask):
+    with app.app_context() as ctx:
+        response = client.post('/oauth/token', json={
+            'grant_type': 'password',
+            'username': 'do not exist',
+            'password': 'do not exist passwd',
+            "client_id": ctx.app.config.get('OAUTH_CLIENT_ID'),
+            "client_secret": ctx.app.config.get('OAUTH_CLIENT_SECRET'),
+        })
 
-    assert response.status_code == 401
+        assert response.status_code == 400
+        assert response.json == {'error': 'invalid_grant'}
 
 
 def test_get_oauth_token_password_wrong_credentials(client: FlaskClient, app: Flask):
     user = User(username='hugo', password='test')
-    with app.app_context():
+    with app.app_context() as ctx:
         dbAlchemy.session.add(user)
         dbAlchemy.session.commit()
         dbAlchemy.session.flush()
@@ -70,11 +76,13 @@ def test_get_oauth_token_password_wrong_credentials(client: FlaskClient, app: Fl
             'grant_type': 'password',
             'username': user.username,
             'password': 'wrong!',
-            'client_id': 'test',
-            'client_secret': 'bananas'
+            "client_id": ctx.app.config.get('OAUTH_CLIENT_ID'),
+            "client_secret": ctx.app.config.get('OAUTH_CLIENT_SECRET'),
         })
 
-        assert response.status_code == 401
+        
+        assert response.status_code == 400
+        assert response.json == {'error': 'invalid_grant'}
 
 
 @pytest.mark.parametrize(
@@ -116,13 +124,64 @@ def test_get_oauth_token_password_wrong_credentials(client: FlaskClient, app: Fl
             'password': 'pass',
             'client_id': 'test',
         }),
+        ({
+            'lorem': 'ipsum'
+        })
     ]
 )
 def test_get_oauth_token_password_non_existing_user(client: FlaskClient, bad_token_request):
-    assert client.post('/oauth/token', json=bad_token_request).status_code == 400
+    response = client.post('/oauth/token', json=bad_token_request)
+    assert response.status_code == 400
+    assert response.json == {'error': 'invalid_request'}
 
+def test_get_oauth_token_unsupported_grant_type(client: FlaskClient, app: Flask):
+    with app.app_context() as ctx:
+        response = client.post(
+            "/oauth/token",
+            json={
+                "grant_type": "client_credentials",
+                "username": "user",
+                "password": "passwd",
+                "client_id": ctx.app.config.get('OAUTH_CLIENT_ID'),
+                "client_secret": ctx.app.config.get('OAUTH_CLIENT_SECRET'),
+            },
+        )
+        assert response.status_code == 400
+        assert response.json == {
+            'error': 'unsupported_grant_type'
+        }
 
-# TODO test client id
-# TODO test client secret
-# TODO when using token, check for expiry
+def test_get_oauth_token_wrong_client_id(client: FlaskClient, app: Flask):
+    with app.app_context() as ctx:
+        response = client.post(
+            "/oauth/token",
+            json={
+                "grant_type": "password",
+                "username": "user",
+                "password": "passwd",
+                "client_id": "doesnt_exist",
+                "client_secret": ctx.app.config.get('OAUTH_CLIENT_SECRET'),
+            },
+        )
+        assert response.status_code == 401
+        assert response.json == {
+            'error': 'invalid_client'
+        }
 
+def test_get_oauth_token_wrong_client_secret(client: FlaskClient, app: Flask):
+    with app.app_context() as ctx:
+        response = client.post(
+            "/oauth/token",
+            json={
+                "grant_type": "password",
+                "username": "user",
+                "password": "passwd",
+                "client_id": ctx.app.config.get('OAUTH_CLIENT_ID'),
+                "client_secret": "bad_secret",
+            },
+        )
+
+        assert response.status_code == 401
+        assert response.json == {
+            'error': 'invalid_client'
+        }

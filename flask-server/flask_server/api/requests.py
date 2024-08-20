@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from flask_server.api.errors import InvalidRequest
+from flask_server.api.errors import OauthInvalidRequest
 
 
 @dataclass(frozen=True)
@@ -23,5 +23,5 @@ class AuthTokenRequest():
                 client_id=json['client_id'],
                 client_secret=json['client_secret'],
             )
-        except KeyError as missing_key:
-            raise InvalidRequest(message=f'Invalid request. Missing {missing_key}.')
+        except KeyError:
+            raise OauthInvalidRequest()

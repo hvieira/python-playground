@@ -1,9 +1,11 @@
-from dataclasses import dataclass, asdict
+class OauthInvalidRequest(Exception):
+    pass
 
+class OauthUnsupportedGrantType(Exception):
+    pass
 
-@dataclass
-class InvalidRequest(Exception):
-    message:str
+class OauthInvalidClient(Exception):
+    pass
 
-    def to_dict(self):
-        return asdict(self)
+class OauthInvalidGrant(Exception):
+    pass
