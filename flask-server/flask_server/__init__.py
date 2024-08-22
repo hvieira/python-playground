@@ -1,7 +1,6 @@
 import os
 
 from flask import Flask
-from flask_server.api import post
 from flask_server.config import Configuration, configuration
 
 def create_app(test_config:Configuration = None):
@@ -19,6 +18,9 @@ def create_app(test_config:Configuration = None):
 
     from .db import dbAlchemy
     dbAlchemy.init_app(app)
+
+    from flask_server.json_encoding import ma
+    ma.init_app(app)
 
     from . import auth
     app.register_blueprint(auth.bp)

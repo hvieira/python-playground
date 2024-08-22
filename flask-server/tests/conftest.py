@@ -9,6 +9,7 @@ from sqlalchemy import select
 
 from flask_server import create_app
 from flask_server.config import Configuration
+from flask_server.models.post import Post
 from flask_server.models.user import User, UserToken
 
 
@@ -71,23 +72,23 @@ class AuthActions(object):
         return self._client.get('/auth/logout')
     
     def create_api_token(self, app: Flask, for_user_with_username='test', created: datetime=None, expiry: datetime=None) -> str:
-        with app.app_context():
-            user = self.get_user_from_username(app, for_user_with_username)
-            token = UserToken(
-                user_id=user.id,
-                token='dummyTokenBlahBlah_!',
-                created=datetime.now(tz=timezone.utc) if created is None else created,
-                expiry=datetime.now(tz=timezone.utc) + timedelta(hours=1) if expiry is None else expiry
-            )
+        # with app.app_context():
+        user = self.get_user_from_username(app, for_user_with_username)
+        token = UserToken(
+            user_id=user.id,
+            token='dummyTokenBlahBlah_!',
+            created=datetime.now(tz=timezone.utc) if created is None else created,
+            expiry=datetime.now(tz=timezone.utc) + timedelta(hours=1) if expiry is None else expiry
+        )
 
-            from flask_server.db import dbAlchemy
-            
-            # TODO need proper handling of all of this - there's other places as well
-            dbAlchemy.session.add(token)
-            dbAlchemy.session.commit()
-            dbAlchemy.session.flush()
+        from flask_server.db import dbAlchemy
+        
+        # TODO need proper handling of all of this - there's other places as well
+        dbAlchemy.session.add(token)
+        dbAlchemy.session.commit()
+        dbAlchemy.session.flush()
 
-            return token.token
+        return token.token
 
 
 @pytest.fixture
@@ -95,8 +96,26 @@ def auth(client):
     return AuthActions(client)
 
 
+class PostActions():
+
+    def create_post(self, p: Post) -> None:
+        # with self._app.app_context():
+        from flask_server.db import dbAlchemy
+        dbAlchemy.session.add(p)
+        dbAlchemy.session.commit()
+        dbAlchemy.session.flush()
+
+@pytest.fixture
+def posting():
+    return PostActions()
+
+
 def init_db(app: Flask):
     from flask_server.db import dbAlchemy
     with app.app_context():
         dbAlchemy.drop_all()
         dbAlchemy.create_all()
+
+
+def serialize_dt_iso_format(dt: datetime) -> str:
+    return dt.isoformat()

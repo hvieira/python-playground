@@ -9,6 +9,8 @@ readme = "README.md"
 python = "~3.10.13"
 Flask = "^3.0.3"
 Flask-SQLAlchemy = "^3.1.1"
+flask-marshmallow = "~1.2.1"
+marshmallow-sqlalchemy = "~1.1.0"
 alembic = "~1.13.2"
 psycopg2 = "~2.9.9"
 

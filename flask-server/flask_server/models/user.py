@@ -5,7 +5,7 @@ import random
 import string
 from sqlalchemy import TIMESTAMP, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from flask_server.json_encoding import ma
 from flask_server.db import Base
 
 
@@ -37,3 +37,13 @@ class UserToken(Base):
             created=now,
             expiry=now + timedelta(seconds=duration_seconds)
         )
+    
+class UserJson(ma.SQLAlchemySchema):
+    class Meta:
+        model = User
+
+    id = ma.auto_field()
+    username = ma.auto_field()
+
+# user_json = PostJson()
+# post_json_list = PostJson(many=True)
