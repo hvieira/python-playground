@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Flask
 from flask.testing import FlaskClient
+import pytest
 
 from flask_server.models.post import Post
 from tests.conftest import AuthActions, PostActions, serialize_dt_iso_format
@@ -14,16 +15,32 @@ def test_api_get_posts_requires_bearer_token(client: FlaskClient, app: Flask, au
         
         assert response.status_code == 401
 
+@pytest.mark.parametrize(
+        'authorization_header',
+        [
+            (''),
+            ('X'),
+            ('Bearer'),
+            ('Bearer '),
+            ('Bearer  '),
+            ('Bearer XXX'),
+        ]
+)
+def test_api_get_posts_does_not_accept_invalid_bearer_tokens(client: FlaskClient, app: Flask, auth: AuthActions, authorization_header):
+    with app.app_context():
+        auth.register()
+
+        response = client.get('/api/posts', headers={'Authorization': authorization_header})
+        
+        assert response.status_code == 401
+
 def test_api_get_posts_requires_non_expired_token(client: FlaskClient, app: Flask, auth: AuthActions):
     with app.app_context():
         auth.register()
         # TODO try having these as fixtures - the user, a valid token, an expired token (etc on other tests)
         token = auth.create_api_token(app, expiry=datetime.min)
 
-        response = client.get('/api/posts', 
-                   headers={
-                       'Authorization': f'Bearer {token}'
-                   })
+        response = get_posts(client, token)
         
         assert response.status_code == 401
 
@@ -33,10 +50,7 @@ def test_api_get_posts_no_posts(client: FlaskClient, app: Flask, auth: AuthActio
         auth.register()
         token = auth.create_api_token(app)
 
-        response = client.get('/api/posts', 
-                   headers={
-                       'Authorization': f'Bearer {token}'
-                   })
+        response = get_posts(client, token)
         
         assert response.status_code == 200
         assert response.json == []
@@ -61,12 +75,8 @@ The world is Fascinating
         posting.create_post(post3)
 
         token = auth.create_api_token(app)
-        response = client.get('/api/posts', 
-                   headers={
-                       'Authorization': f'Bearer {token}'
-                   },
-                   query_string={'page_size': 5, 'offset_cursor': 0})
         
+        response = get_posts(client, token)
         assert response.status_code == 200
         assert response.json == [
             _expected_post_json(post1),
@@ -74,37 +84,31 @@ The world is Fascinating
             _expected_post_json(post3),
         ]
 
-        response = client.get('/api/posts', 
-                   headers={
-                       'Authorization': f'Bearer {token}'
-                   },
-                   query_string={'page_size': 1, 'offset_cursor': 0})
-        
+        response = get_posts(client, token, {'page_size': 1, 'offset_cursor': 0})
         assert response.status_code == 200
         assert response.json == [
             _expected_post_json(post1),
         ]
 
-        response = client.get('/api/posts', 
-                   headers={
-                       'Authorization': f'Bearer {token}'
-                   },
-                   query_string={'page_size': 2, 'offset_cursor': 1})
-        
+        response = get_posts(client, token, {'page_size': 2, 'offset_cursor': 1})
         assert response.status_code == 200
         assert response.json == [
             _expected_post_json(post2),
             _expected_post_json(post3),
         ]
 
-        response = client.get('/api/posts', 
-                   headers={
-                       'Authorization': f'Bearer {token}'
-                   },
-                   query_string={'page_size': 2, 'offset_cursor': 3})
-        
+        response = get_posts(client, token, {'page_size': 2, 'offset_cursor': 3})
         assert response.status_code == 200
         assert response.json == []
+
+
+def get_posts(client, token, query_string={}):
+    return client.get(
+        "/api/posts",
+        headers={"Authorization": f"Bearer {token}"},
+        query_string=query_string,
+    )
+
 
 def _expected_post_json(post: Post) -> dict:
     return {
@@ -118,7 +122,6 @@ def _expected_post_json(post: Post) -> dict:
         'body': post.body
     }
 
-# TODO test invalid token
 # TODO test create post
 # TODO test update post
 # TODO test delete post

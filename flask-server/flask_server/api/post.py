@@ -5,7 +5,8 @@ from sqlalchemy import select
 
 from flask_server.api.auth import valid_token_required
 from flask_server.db import dbAlchemy
-from flask_server.models.post import Post, post_json_list
+from flask_server.models.post import Post
+from flask_server.api.responses import post_json_list
 
 
 bp = Blueprint('post_api', __name__)

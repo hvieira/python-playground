@@ -38,12 +38,3 @@ class UserToken(Base):
             expiry=now + timedelta(seconds=duration_seconds)
         )
     
-class UserJson(ma.SQLAlchemySchema):
-    class Meta:
-        model = User
-
-    id = ma.auto_field()
-    username = ma.auto_field()
-
-# user_json = PostJson()
-# post_json_list = PostJson(many=True)
