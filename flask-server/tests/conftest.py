@@ -1,12 +1,15 @@
+from datetime import datetime, timedelta, timezone
 import os
 from flask import Flask
 import pytest
 import tempfile
 
 from flask.testing import FlaskClient
+from sqlalchemy import select
 
 from flask_server import create_app
 from flask_server.config import Configuration
+from flask_server.models.user import User, UserToken
 
 
 @pytest.fixture
@@ -19,7 +22,6 @@ def app():
         db_uri=f'postgresql://root:root@localhost:5433/test',
         oauth_client_id='test_oauth_client_it',
         oauth_client_secret='test_oauth_client_secretz',
-        sql_logging=True, 
         testing=True
         )
     )
@@ -51,6 +53,13 @@ class AuthActions(object):
             '/auth/register',
             data={'username': username, 'password': password}
         )
+    
+
+    def get_user_from_username(self, app: Flask, username='test'):
+        with app.app_context():
+            from flask_server.db import dbAlchemy
+
+            return dbAlchemy.session.execute(select(User).where(User.username == username)).scalar_one()
 
     def login(self, username='test', password='test'):
         return self._client.post(
@@ -60,6 +69,25 @@ class AuthActions(object):
 
     def logout(self):
         return self._client.get('/auth/logout')
+    
+    def create_api_token(self, app: Flask, for_user_with_username='test', created: datetime=None, expiry: datetime=None) -> str:
+        with app.app_context():
+            user = self.get_user_from_username(app, for_user_with_username)
+            token = UserToken(
+                user_id=user.id,
+                token='dummyTokenBlahBlah_!',
+                created=datetime.now(tz=timezone.utc) if created is None else created,
+                expiry=datetime.now(tz=timezone.utc) + timedelta(hours=1) if expiry is None else expiry
+            )
+
+            from flask_server.db import dbAlchemy
+            
+            # TODO need proper handling of all of this - there's other places as well
+            dbAlchemy.session.add(token)
+            dbAlchemy.session.commit()
+            dbAlchemy.session.flush()
+
+            return token.token
 
 
 @pytest.fixture

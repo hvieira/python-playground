@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_server.api import post
 from flask_server.config import Configuration, configuration
 
 def create_app(test_config:Configuration = None):
@@ -26,7 +27,8 @@ def create_app(test_config:Configuration = None):
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')
 
-    from flask_server.api import auth
+    from flask_server.api import auth, post
     app.register_blueprint(auth.bp)
+    app.register_blueprint(post.bp, url_prefix='/api')
 
     return app

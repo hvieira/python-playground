@@ -1,6 +1,8 @@
 
+from datetime import datetime, timezone
+import functools
 from flask import (
-    Blueprint, current_app, jsonify, request
+    Blueprint, abort, current_app, g, jsonify, request
 )
 from sqlalchemy import select
 
@@ -43,6 +45,36 @@ def validate_request(token_request: AuthTokenRequest):
 
     if token_request.grant_type != 'password':
         raise OauthUnsupportedGrantType()
+
+
+def valid_token_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        authorizationHeader = request.headers.get('Authorization')
+        if not authorizationHeader:
+            abort(401, jsonify({'error': 'invalid credentials'}))
+        
+        bearer_token = authorizationHeader[7:]
+
+        userToken = dbAlchemy.session.execute(select(UserToken)
+                                              .where(UserToken.token == bearer_token)
+                                              .where(UserToken.expiry > datetime.now(tz=timezone.utc))
+                                              ).scalar()
+
+        if not userToken:
+            abort(401, jsonify({'error': 'invalid credentials'}))
+
+        user = dbAlchemy.session.get(User, userToken.user_id)
+
+        # should not happen, unless the user row was deleted
+        if not user:
+            abort(401, jsonify({'error': 'invalid credentials'}))
+
+        g.user = user
+
+        return view(**kwargs)
+
+    return wrapped_view
 
 
 @bp.errorhandler(OauthInvalidRequest)
