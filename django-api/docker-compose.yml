@@ -1,0 +1,27 @@
+version: '3'
+services:
+  db:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_USER=django-api
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=django-api
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+  # an alternative to this would be to use "docker-entrypoint-initdb.d" scripts - https://hub.docker.com/_/postgres (section initialization scripts)
+  # to create a separate DB in the container above
+  test-db:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_USER=django-api
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=django-api
+    ports:
+      - 5433:5432
+
+volumes:
+  pgdata:
+    driver: local
