@@ -1,4 +1,4 @@
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from rest_framework import status
@@ -54,7 +54,11 @@ class QuestionDetailAPIView(APIView):
         '''
         Get Question detail
         '''
-        question = Question.objects.get(pk=pk)
+        try:
+            question = Question.objects.get(pk=pk)
+        except Question.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         serializer = QuestionSerializer(question)
         return Response(serializer.data)
 
@@ -68,6 +72,10 @@ class QuestionChoicesAPIView(APIView):
         '''
         List all choices for a question
         '''
-        question = Question.objects.get(pk=pk)
+        try:
+            question = Question.objects.get(pk=pk)
+        except Question.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
         serializer = ChoiceSerializer(question.choice_set, many=True)
         return Response(serializer.data)
