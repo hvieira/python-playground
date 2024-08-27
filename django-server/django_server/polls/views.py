@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Question
-from .serializers import QuestionSerializer
+from .serializers import ChoiceSerializer, QuestionSerializer
 
 
 def index(request):
@@ -30,14 +30,14 @@ def vote(request, question_id):
 
 
 
-class QuestionListApiView(APIView):
+class QuestionListAPIView(APIView):
     
     def get(self, _request: Request):
         '''
         List all questions
         '''
-        todos = Question.objects.all()
-        serializer = QuestionSerializer(todos, many=True)
+        questions = Question.objects.all()
+        serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data)
     
     def post(self, request: Request):
@@ -47,3 +47,27 @@ class QuestionListApiView(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class QuestionDetailAPIView(APIView):
+    
+    def get(self, _request: Request, pk=None):
+        '''
+        Get Question detail
+        '''
+        question = Question.objects.get(pk=pk)
+        serializer = QuestionSerializer(question)
+        return Response(serializer.data)
+
+    # TODO missing update on PUT for question
+    # TODO missing DELETE on PUT for question
+
+
+class QuestionChoicesAPIView(APIView):
+    
+    def get(self, _request: Request, pk=None):
+        '''
+        List all choices for a question
+        '''
+        question = Question.objects.get(pk=pk)
+        serializer = ChoiceSerializer(question.choice_set, many=True)
+        return Response(serializer.data)
