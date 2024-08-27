@@ -5,7 +5,7 @@ from django.db import models
 
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
-    pub_date = models.DateTimeField(verbose_name="date published")
+    pub_date = models.DateTimeField(verbose_name="date published", auto_now=True)
 
     def __str__(self):
         return f'[{self.id}] {self.question_text}'

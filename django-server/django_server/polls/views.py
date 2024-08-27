@@ -2,12 +2,12 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from rest_framework import status
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-# to avoid the warning, use from .models import Question
-from polls.models import Question
-from polls.serializers import QuestionSerializer
+from .models import Question
+from .serializers import QuestionSerializer
 
 
 def index(request):
@@ -32,10 +32,18 @@ def vote(request, question_id):
 
 class QuestionListApiView(APIView):
     
-    def get(self, request, *args, **kwargs):
+    def get(self, _request: Request):
         '''
         List all questions
         '''
         todos = Question.objects.all()
         serializer = QuestionSerializer(todos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+    
+    def post(self, request: Request):
+        serializer = QuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
