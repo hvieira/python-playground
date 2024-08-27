@@ -13,6 +13,6 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ['id', "question_text", "pub_date", 'choices']
         depth = 1
 
-    choices = ChoiceSerializer(required=False, many=True, source='choice_set')
+    choices = ChoiceSerializer(required=False, many=True, source='choice_set', read_only=True)
 
 
