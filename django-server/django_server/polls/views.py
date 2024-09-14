@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from .models import Question
 from .serializers import ChoiceSerializer, QuestionSerializer
@@ -79,3 +80,8 @@ class QuestionChoicesAPIView(APIView):
 
         serializer = ChoiceSerializer(question.choice_set, many=True)
         return Response(serializer.data)
+
+
+class QuestionViewSet(ModelViewSet):
+    serializer_class = QuestionSerializer
+    queryset = Question.objects.all()

@@ -1,10 +1,10 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter
 
 from . import views
 
-app_name = "polls"
-urlpatterns = [
-    path('', views.QuestionListAPIView.as_view()),
-    path('<int:pk>/', views.QuestionDetailAPIView.as_view()),
-    path('<int:pk>/choices', views.QuestionChoicesAPIView.as_view()),
-]
+
+router = SimpleRouter()
+router.register(r'', views.QuestionViewSet)
+
+urlpatterns = router.urls
