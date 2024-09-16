@@ -12,10 +12,15 @@ Sources:
 
 There's an integration to run tests with pytest, giving tools such as fixtures and so forth - `pytest-django`. A blog post on this topic - https://djangostars.com/blog/django-pytest-testing/
 
+Configuration:
+- pytest needs a `pytest.ini` configured in a way that it can find the `settings` module (i.e. `settings.py` of the django project).
+- using django's TestCase needs extra pytest config to inject fixtures that is less readable than simply using `@pytest.mark.django_db` for each test case that needs a DB. If test grouping is wanted, then a simple class (with no `TestCase` mixin) can be used
+
 **TODOs**
 - run integration tests with pytest. These tests should not belong to the `polls` app as integration tests are of the domain/service itself
 and not just of the `polls` app
     - the tests should cover the simple API
+- What would be needed to run tests with django's `TestCase` and pytest? register findings
 
 ## Django Database ORM
 

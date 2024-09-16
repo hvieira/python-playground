@@ -1,6 +1,6 @@
 import pytest  
   
-from rest_framework.test import APIClient  
+from rest_framework.test import APIClient, APIRequestFactory
   
   
 @pytest.fixture(scope="function")  
