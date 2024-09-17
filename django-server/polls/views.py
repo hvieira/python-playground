@@ -30,58 +30,6 @@ def vote(request, question_id):
     return HttpResponse("You're voting on question %s." % question_id)
 
 
-
-class QuestionListAPIView(APIView):
-    
-    def get(self, _request: Request):
-        '''
-        List all questions
-        '''
-        questions = Question.objects.all()
-        serializer = QuestionSerializer(questions, many=True)
-        return Response(serializer.data)
-    
-    def post(self, request: Request):
-        serializer = QuestionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class QuestionDetailAPIView(APIView):
-    
-    def get(self, _request: Request, pk=None):
-        '''
-        Get Question detail
-        '''
-        try:
-            question = Question.objects.get(pk=pk)
-        except Question.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
-
-    # TODO missing update on PUT for question
-    # TODO missing DELETE on PUT for question
-
-
-class QuestionChoicesAPIView(APIView):
-    
-    def get(self, _request: Request, pk=None):
-        '''
-        List all choices for a question
-        '''
-        try:
-            question = Question.objects.get(pk=pk)
-        except Question.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ChoiceSerializer(question.choice_set, many=True)
-        return Response(serializer.data)
-
-
 class QuestionViewSet(ModelViewSet):
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
