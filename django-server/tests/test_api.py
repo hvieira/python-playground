@@ -3,7 +3,7 @@ import pytest
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from polls.models import Question, Choice
+from polls.models import Question
 
 
 @pytest.mark.django_db
@@ -26,8 +26,6 @@ def test_get_polls_with_existing_polls(api_client: APIClient):
 
     response = api_client.get('/api/polls/')
     
-    print(type(response.data))
-
     # TODO datetime objects do not support Z (Zulu time suffix) or any other military suffixes
     # one solution would be to use explicit time zone - e.g. "+00:00", in this case. This would need a change in the serializers
     assert response.data == [
