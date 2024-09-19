@@ -26,7 +26,7 @@ Features:
     - search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
 
 Technical features:
-- backing postgres DB
+- [WIP] backing postgres DB
 - all dates/timestamps should be in UTC timezone
 - all DB entities should have `created`, `updated`, `deleted` timestamps
 - DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
