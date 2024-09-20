@@ -1,5 +1,15 @@
 # Notes
 
+## Common properties/fields for models
+https://docs.djangoproject.com/en/5.1/topics/db/models/#abstract-base-classes
+
+## Extending OR custom django's User
+Opted for custom to user UUID as IDs
+
+custom: https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
+
+extending - https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#extending-the-existing-user-model
+
 ## Boostrapping project
 1. `poetry new django-api`
 1. go into the new directory

@@ -9,8 +9,9 @@ Features:
     - products that are owned by users
     - products can be associated with tags
 - users can (via the API):
-    - register
-    - authenticate
+    - [x] register
+    - [WIP] authenticate
+    - view public information about other users
     - manage their own products, but not of other users
         - edit product core information
             - name
@@ -26,7 +27,9 @@ Features:
     - search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
 
 Technical features:
-- [WIP] backing postgres DB
+- [x] backing postgres DB
+- all entities should have UUID for ids
+- static analysis of code - isort, black, ...
 - all dates/timestamps should be in UTC timezone
 - all DB entities should have `created`, `updated`, `deleted` timestamps
 - DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
@@ -37,6 +40,8 @@ Technical features:
 
 Optional features:
 - run the app in a docker-compose env
+- run type analysis - https://www.mypy-lang.org/
 - transition code to async where applicable
 - the change in the DB caused by placing an order should emit an event to a message/event stream (e.g. kafka)
 - place product information (name, description, stock and tags) in an elasticsearch index and use it to list & search
+- social features such as "follow user"
