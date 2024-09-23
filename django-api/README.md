@@ -29,6 +29,7 @@ Features:
 Technical features:
 - [x] backing postgres DB
 - all entities should have UUID for ids
+- expired user API tokens should be removed
 - static analysis of code - isort, black, ...
 - all dates/timestamps should be in UTC timezone
 - all DB entities should have `created`, `updated`, `deleted` timestamps
