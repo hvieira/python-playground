@@ -15,11 +15,3 @@ class BaseEntity(models.Model):
 
 class User(AbstractUser, BaseEntity):
     pass
-
-
-class UserAPIToken(models.Model):
-    token = models.CharField(primary_key=True, max_length=100, editable=False)
-    user = models.ForeignKey(to=User, null=False, on_delete=models.DO_NOTHING ,editable=False)
-    created = models.DateTimeField(null=False, auto_now_add=True, editable=False)
-    expiry = models.DateTimeField(null=False, editable=False)
-

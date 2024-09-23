@@ -17,3 +17,16 @@ class UserViewSet(ViewSet):
         User.objects.create_user(**serializer.validated_data)
 
         return Response(status=201)
+
+
+# class UserAPITokenViewSet(ViewSet):
+
+#     queryset = UserAPIToken.objects.all()
+
+#     def create(self, request: Request):
+#         serializer = AccessTokenRequestSerializer(data=request.data)
+#         serializer.is_valid()
+
+#         User.objects.create_user(**serializer.validated_data)
+
+#         return Response(status=201)
