@@ -14,6 +14,6 @@ class UserViewSet(ViewSet):
         serializer = CreateUserRequestSerializer(data=request.data)
         serializer.is_valid()
 
-        create_user = User.objects.create_user(**serializer.validated_data)
+        User.objects.create_user(**serializer.validated_data)
 
         return Response(status=201)
