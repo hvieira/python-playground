@@ -1,6 +1,6 @@
 from typing import Generator
-import pytest
 
+import pytest
 from oauth2_provider.models import Application
 from rest_framework.test import RequestsClient
 

@@ -1,12 +1,11 @@
 from unittest.mock import patch
-import pytest
 
+import pytest
+from oauth2_provider.models import Application
 from requests import Response
 from rest_framework.test import RequestsClient
-from oauth2_provider.models import Application
 
 from store_api.models import User
-
 
 default_api_token = 'afs!vydu3kse$n12t0BGILAo&ANSD/Faj1hg#sfd'
 default_api_refresh_token = 'bbbbbbbbbbbbbbbbbbbbbbbbb'

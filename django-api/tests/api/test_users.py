@@ -1,6 +1,6 @@
 import uuid
-import pytest
 
+import pytest
 from django.contrib.auth.hashers import check_password
 from rest_framework.test import RequestsClient
 

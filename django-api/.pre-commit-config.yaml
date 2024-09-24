@@ -4,3 +4,7 @@ repos:
     hooks:
       - id: flake8
         exclude: ^store_api/migrations|django_api/settings
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
