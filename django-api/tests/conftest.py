@@ -1,18 +1,18 @@
 from typing import Generator
-import pytest  
+import pytest
 
 from oauth2_provider.models import Application
 from rest_framework.test import RequestsClient
-  
+
 from store_api.models import User
 
-  
+
 @pytest.fixture()
-def api_client() -> Generator[RequestsClient, None, None]:  
-    """  
-    Fixture to provide an API client  
-    :return: RequestsClient  
-    """  
+def api_client() -> Generator[RequestsClient, None, None]:
+    """
+    Fixture to provide an API client
+    :return: RequestsClient
+    """
     yield RequestsClient()
 
 
@@ -56,10 +56,12 @@ def admin_user(default_admin_password: str) -> Generator[User, None, None]:
 
 
 @pytest.fixture()
-def default_oauth_app(default_oauth_app_client_id: str, 
-                    default_oauth_app_client_secret: str,
-                    admin_user: User) -> Generator[Application, None, None]:
-    
+def default_oauth_app(
+    default_oauth_app_client_id: str,
+    default_oauth_app_client_secret: str,
+    admin_user: User,
+) -> Generator[Application, None, None]:
+
     yield Application.objects.create(
         client_id=default_oauth_app_client_id,
         name=default_oauth_app_client_id,

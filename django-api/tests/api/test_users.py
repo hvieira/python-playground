@@ -33,15 +33,15 @@ class TestUserApi():
         assert response.status_code == 201
 
         assert User.objects.count() == 1
-        user =  User.objects.first() 
+        user = User.objects.first()
         assert user
-        assert user.id
+        assert type(user.id) is uuid.UUID
         assert user.first_name == first_name
         assert user.last_name == last_name
         assert user.username == username
         assert user.email == email
         assert check_password(password, user.password)
-        
+
 
 # TODO test malformed request
 # TODO test no request body

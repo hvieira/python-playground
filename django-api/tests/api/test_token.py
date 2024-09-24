@@ -18,14 +18,17 @@ class TestUserAPITokens():
     @patch('oauthlib.oauth2.rfc6749.tokens.random_token_generator')
     def test_create_get_token_for_user(self,
                                        _random_token_generator,
-                                       api_client: RequestsClient, 
-                                       default_user: User, 
+                                       api_client: RequestsClient,
+                                       default_user: User,
                                        default_password: str,
                                        default_oauth_app: Application,
                                        default_oauth_app_client_secret: str
                                        ):
-        
-        _random_token_generator.side_effect = [default_api_token, default_api_refresh_token]
+
+        _random_token_generator.side_effect = [
+            default_api_token,
+            default_api_refresh_token
+        ]
 
         response: Response = api_client.post(
             'https://testserver/oauth/token/',

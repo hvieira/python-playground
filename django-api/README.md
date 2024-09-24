@@ -41,7 +41,7 @@ Technical features:
 
 Optional features:
 - run the app in a docker-compose env
-- run type analysis - https://www.mypy-lang.org/
+- run type analysis - https://www.mypy-lang.org/. Would likely be better to upgrade to python 3.11 beforehand because it supports better typing
 - transition code to async where applicable
 - the change in the DB caused by placing an order should emit an event to a message/event stream (e.g. kafka)
 - place product information (name, description, stock and tags) in an elasticsearch index and use it to list & search

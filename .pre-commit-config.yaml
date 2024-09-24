@@ -1,0 +1,10 @@
+repos:
+  - repo: https://github.com/ddanier/sub-pre-commit.git
+    rev: v3.8.0  # MUST match your pre-commit version
+    hooks:
+      - id: sub-pre-commit
+        alias: django-api
+        name: "pre-commit for django-api/"
+        args: ["-p", "django-api"]
+        files: "^django-api/.*"
+        stages: ["commit"]  
