@@ -18,40 +18,38 @@ def api_client() -> Generator[RequestsClient, None, None]:
 
 @pytest.fixture()
 def default_password() -> str:
-    return 'l33t!passwdzzz'
+    return "l33t!passwdzzz"
 
 
 @pytest.fixture()
 def default_user(default_password: str) -> Generator[User, None, None]:
     yield User.objects.create_user(
-        email='john.doe@test.com',
-        username='john.doe',
-        password=default_password
+        email="john.doe@test.com", username="john.doe", password=default_password
     )
 
 
 @pytest.fixture()
 def default_admin_password() -> str:
-    return 'Divinity!Iam!'
+    return "Divinity!Iam!"
 
 
 @pytest.fixture()
 def default_oauth_app_client_id() -> str:
-    return 'magnificent-test-app'
+    return "magnificent-test-app"
 
 
 @pytest.fixture()
 def default_oauth_app_client_secret() -> str:
-    return 'SuP3rSeKr3tz'
+    return "SuP3rSeKr3tz"
 
 
 @pytest.fixture()
 def admin_user(default_admin_password: str) -> Generator[User, None, None]:
     yield User.objects.create_user(
-        email='admin@testserver.com',
-        username='root@testserver',
+        email="admin@testserver.com",
+        username="root@testserver",
         password=default_admin_password,
-        is_superuser=True
+        is_superuser=True,
     )
 
 
@@ -69,10 +67,6 @@ def default_oauth_app(
         client_type=Application.CLIENT_PUBLIC,
         authorization_grant_type=Application.GRANT_PASSWORD,
         client_secret=default_oauth_app_client_secret,
-        redirect_uris=[
-            'http://testserver/nonexist/callback'
-        ],
-        post_logout_redirect_uris = [
-            'http://testserver/nonexist/logout'
-        ]
+        redirect_uris=["http://testserver/nonexist/callback"],
+        post_logout_redirect_uris=["http://testserver/nonexist/logout"],
     )

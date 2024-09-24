@@ -10,24 +10,24 @@ from store_api.models import User
 # TODO for some reason need to mark this as a transaction
 # follow issue - https://github.com/pytest-dev/pytest-django/issues/1099
 @pytest.mark.django_db(transaction=True)
-class TestUserApi():
+class TestUserApi:
 
     def test_create_user(self, api_client: RequestsClient):
-        first_name = 'John'
-        last_name = 'Lastest'
-        email = 'john.latest@test.com'
-        username = 'john.latest'
-        password = 'superSecr3tz'
+        first_name = "John"
+        last_name = "Lastest"
+        email = "john.latest@test.com"
+        username = "john.latest"
+        password = "superSecr3tz"
 
         response = api_client.post(
-            'http://testserver/api/users/',
-            data = {
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email,
-                'username': username,
-                'password': password
-            }
+            "http://testserver/api/users/",
+            data={
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "username": username,
+                "password": password,
+            },
         )
 
         assert response.status_code == 201

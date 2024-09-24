@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('store_api', '0001_initial'),
+        ("store_api", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='deleted',
+            model_name="user",
+            name="deleted",
             field=models.DateTimeField(null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='updated',
+            model_name="user",
+            name="updated",
             field=models.DateTimeField(auto_now_add=True),
         ),
     ]
