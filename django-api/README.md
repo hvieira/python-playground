@@ -11,6 +11,8 @@ Features:
 - users can (via the API):
     - [x] register
     - [x] authenticate and get a access token for the API
+    - [WIP] change applicable own user details
+        - password
     - view public information about other users
     - manage their own products, but not of other users
         - edit product core information
@@ -30,7 +32,7 @@ Technical features:
 - [x] backing postgres DB
 - all entities should have UUID for ids
 - expired user API tokens should be removed
-- [WIP] static analysis of code - isort, black, ...
+- [x] static analysis of code - isort, black, ...
 - all dates/timestamps should be in UTC timezone
 - all DB entities should have `created`, `updated`, `deleted` timestamps
 - DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
