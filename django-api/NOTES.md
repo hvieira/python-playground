@@ -10,6 +10,10 @@ custom: https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#using-a-c
 
 extending - https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#extending-the-existing-user-model
 
+## Oauth Lib
+This is the best tutorial to get password grant working. Obviously, the password grant is no longer supported from oauth 2.1, but in this case it works to explore using and configuring the lib
+https://django-oauth-toolkit.readthedocs.io/en/latest/rest-framework/getting_started.html
+
 ## Boostrapping project
 1. `poetry new django-api`
 1. go into the new directory
