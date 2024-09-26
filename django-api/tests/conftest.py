@@ -1,7 +1,8 @@
+from datetime import datetime, timedelta, timezone
 from typing import Generator
 
 import pytest
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import RequestsClient
 
 from store_api.models import User
@@ -70,3 +71,21 @@ def default_oauth_app(
         redirect_uris=["http://testserver/nonexist/callback"],
         post_logout_redirect_uris=["http://testserver/nonexist/logout"],
     )
+
+
+class AuthActions:
+
+    def generate_api_access_token(
+        self, user: User, oauth_app: Application, scopes="read write"
+    ) -> AccessToken:
+        return AccessToken.objects.create(
+            user=user,
+            token="blahblahblah",
+            application=oauth_app,
+            expires=datetime.now(timezone.utc) + timedelta(minutes=2),
+        )
+
+
+@pytest.fixture()
+def auth_actions():
+    return AuthActions()

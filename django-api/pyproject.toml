@@ -13,6 +13,7 @@ djangorestframework = "~3.15.2"
 django-oauth-toolkit = "~3.0.1"
 
 [tool.poetry.group.dev.dependencies]
+black = "~24.8.0"
 pytest = "~8.3.2"
 pytest-django = "~4.9.0"
 coverage = "~7.6.1"
@@ -22,3 +23,14 @@ freezegun = "~1.5.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+py_version = 310
+
+
