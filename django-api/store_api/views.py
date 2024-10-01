@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.contrib.auth.hashers import check_password
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -33,10 +34,20 @@ class UserViewSet(ViewSet):
     )
     def update_password(self, request: Request, pk: UUID = None):
         serializer = UpdateUserPasswordRequestSerializer(data=request.data)
-        serializer.is_valid()
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        user: User = request.user
-        user.set_password(serializer.validated_data["new_password"])
-        user.save()
+        authenticated_user: User = request.user
+        path_user: User = self.queryset.get(pk=pk)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if not path_user or path_user.id != authenticated_user.id:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        if check_password(
+            serializer.validated_data["old_password"], authenticated_user.password
+        ):
+            authenticated_user.set_password(serializer.validated_data["new_password"])
+            authenticated_user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

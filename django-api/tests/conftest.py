@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from time import perf_counter
-from typing import Generator
+from typing import Callable, Generator
 
 import pytest
 from django.test import Client
@@ -28,13 +28,23 @@ def default_password() -> str:
 
 # TODO this probably should be a factory function
 @pytest.fixture
-def default_user(db, default_password: str) -> Generator[User, None, None]:
+def default_user(default_password: str) -> Generator[User, None, None]:
     t1 = perf_counter()
     val = User.objects.create_user(
         email="john.doe@test.com", username="john.doe", password=default_password
     )
     logger.info(f"default_user took {perf_counter() - t1}")
     return val
+
+
+@pytest.fixture
+def user_factory() -> Callable[[], User]:
+    def factory(email: str, username: str, password: str) -> User:
+        return User.objects.create_user(
+            email=email, username=username, password=password
+        )
+
+    return factory
 
 
 @pytest.fixture(scope="session")
@@ -96,6 +106,20 @@ class AuthActions:
             token="blahblahblah",
             application=oauth_app,
             expires=datetime.now(timezone.utc) + timedelta(minutes=2),
+        )
+
+    def generate_expired_api_access_token(
+        self,
+        user: User,
+        oauth_app: Application,
+        scopes="read write",
+        expired_by=timedelta(minutes=1),
+    ) -> AccessToken:
+        return AccessToken.objects.create(
+            user=user,
+            token="blahblahblah",
+            application=oauth_app,
+            expires=datetime.now(timezone.utc) - expired_by,
         )
 
 

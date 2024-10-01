@@ -34,6 +34,7 @@ Technical features:
 - all entities should have UUID for ids
 - expired user API tokens should be removed
 - [x] static analysis of code - isort, black, ...
+- separate test runs for unit and integration/api tests. The latter are slower and should be run separately
 - all dates/timestamps should be in UTC timezone
 - all DB entities should have `created`, `updated`, `deleted` timestamps
 - DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
