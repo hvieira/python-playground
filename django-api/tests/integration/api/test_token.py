@@ -1,24 +1,24 @@
 from unittest.mock import patch
 
 import pytest
+from django.test import Client
 from oauth2_provider.models import Application
 from requests import Response
-from rest_framework.test import RequestsClient
 
 from store_api.models import User
 
 default_api_token = "afs!vydu3kse$n12t0BGILAo&ANSD/Faj1hg#sfd"
-default_api_refresh_token = "bbbbbbbbbbbbbbbbbbbbbbbbb"
+default_api_refresh_token = "NIdtr$vBnjsdtu254njkGVLL47nBretsdgfIu3h7"
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db()
 class TestUserAPITokens:
 
     @patch("oauthlib.oauth2.rfc6749.tokens.random_token_generator")
     def test_create_get_token_for_user(
         self,
         _random_token_generator,
-        api_client: RequestsClient,
+        api_client: Client,
         default_user: User,
         default_password: str,
         default_oauth_app: Application,
