@@ -14,6 +14,11 @@ extending - https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#exten
 This is the best tutorial to get password grant working. Obviously, the password grant is no longer supported from oauth 2.1, but in this case it works to explore using and configuring the lib
 https://django-oauth-toolkit.readthedocs.io/en/latest/rest-framework/getting_started.html
 
+## Testing
+Creating models when using `@pytest.mark.django_db` is slow and makes integration tests take a long time.
+
+I added a `base_test.py` file with an example of a base class that could have some potential to speed things up a bit.
+
 ## Boostrapping project
 1. `poetry new django-api`
 1. go into the new directory
