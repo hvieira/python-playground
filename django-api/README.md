@@ -11,9 +11,10 @@ Features:
 - users can (via the API):
     - [x] register
     - [x] authenticate and get a access token for the API
-    - [WIP] change applicable own user details
+    - [x] change applicable own user details
         - password
-    - view public information about other users
+    - [WIP] view their own profile
+    - [WIP] view public information about other users
     - manage their own products, but not of other users
         - edit product core information
             - name

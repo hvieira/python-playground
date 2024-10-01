@@ -46,7 +46,55 @@ class TestUserApi:
         assert check_password(password, user.password)
 
     # TODO test malformed request
-    # TODO test no request body
+    @pytest.mark.parametrize(
+        "request_body",
+        [
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "email": "jane.doe@test.com",
+                "username": "jane.doe",
+            },
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "email": "jane.doe@test.com",
+                "password": "l33tPasswd",
+            },
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "username": "jane.doe",
+                "password": "l33tPasswd",
+            },
+            {
+                "first_name": "Jane",
+                "email": "jane.doe@test.com",
+                "username": "jane.doe",
+                "password": "l33tPasswd",
+            },
+            {
+                "last_name": "Doe",
+                "email": "jane.doe@test.com",
+                "username": "jane.doe",
+                "password": "l33tPasswd",
+            },
+            {
+                "username": "suzuki",
+                "email": "suzuki@notexist.com",
+                "passwod": "pass123",
+            },
+            {},
+        ],
+    )
+    def test_create_user_invalid_request(self, api_client: Client, request_body):
+        response = api_client.post(
+            "http://testserver/api/users/",
+            data=request_body,
+        )
+
+        assert response.status_code == 400
+        assert User.objects.count() == 0
 
     def test_update_existing_user_password(
         self,

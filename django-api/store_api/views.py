@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from rest_framework import permissions
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -19,11 +19,11 @@ class UserViewSet(ViewSet):
 
     def create(self, request: Request):
         serializer = CreateUserRequestSerializer(data=request.data)
-        serializer.is_valid()
-
-        User.objects.create_user(**serializer.validated_data)
-
-        return Response(status=201)
+        if serializer.is_valid():
+            User.objects.create_user(**serializer.validated_data)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         url_path="update-password",
@@ -39,4 +39,4 @@ class UserViewSet(ViewSet):
         user.set_password(serializer.validated_data["new_password"])
         user.save()
 
-        return Response(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
