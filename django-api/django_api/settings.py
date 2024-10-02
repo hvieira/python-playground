@@ -117,8 +117,10 @@ OAUTH2_PROVIDER = {
     "SCOPES": {
         "read": "Read access to owned objects",
         "write": "Write access to owned objects",
-    }
+    },
 }
+
+AUTH_USER_MODEL = "store_api.User"
 
 
 # Internationalization
@@ -142,5 +144,3 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-AUTH_USER_MODEL = "store_api.User"

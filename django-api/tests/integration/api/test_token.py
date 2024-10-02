@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
 import pytest
+from django.http import HttpResponse
 from django.test import Client
 from oauth2_provider.models import Application
-from requests import Response
 
 from store_api.models import User
 
@@ -30,7 +30,7 @@ class TestUserAPITokens:
             default_api_refresh_token,
         ]
 
-        response: Response = api_client.post(
+        response: HttpResponse = api_client.post(
             "https://testserver/oauth/token/",
             data={
                 "grant_type": "password",
@@ -39,7 +39,6 @@ class TestUserAPITokens:
                 "client_id": default_oauth_app.client_id,
                 "client_secret": default_oauth_app_client_secret,
             },
-            allow_redirects=False,
         )
 
         assert response.status_code == 200
@@ -49,4 +48,29 @@ class TestUserAPITokens:
             "expires_in": 36000,
             "token_type": "Bearer",
             "scope": "read write",
+        }
+
+    def test_create_get_token_for_deleted_user(
+        self,
+        api_client: Client,
+        default_deleted_user: User,
+        default_password: str,
+        default_oauth_app: Application,
+        default_oauth_app_client_secret: str,
+    ):
+        response: HttpResponse = api_client.post(
+            "https://testserver/oauth/token/",
+            data={
+                "grant_type": "password",
+                "username": default_deleted_user.username,
+                "password": default_password,
+                "client_id": default_oauth_app.client_id,
+                "client_secret": default_oauth_app_client_secret,
+            },
+        )
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "error": "invalid_grant",
+            "error_description": "Invalid credentials given.",
         }

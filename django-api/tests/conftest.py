@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from time import perf_counter
-from typing import Callable, Generator
+from typing import Callable
 
 import pytest
 from django.test import Client
@@ -26,25 +26,41 @@ def default_password() -> str:
     return "l33t!passwdzzz"
 
 
-# TODO this probably should be a factory function
-@pytest.fixture
-def default_user(default_password: str) -> Generator[User, None, None]:
-    t1 = perf_counter()
-    val = User.objects.create_user(
-        email="john.doe@test.com", username="john.doe", password=default_password
-    )
-    logger.info(f"default_user took {perf_counter() - t1}")
-    return val
-
-
 @pytest.fixture
 def user_factory() -> Callable[[], User]:
-    def factory(email: str, username: str, password: str) -> User:
+    def factory(
+        email: str, username: str, password: str, deleted=None, is_active=True
+    ) -> User:
         return User.objects.create_user(
-            email=email, username=username, password=password
+            email=email,
+            username=username,
+            password=password,
+            deleted=deleted,
+            is_active=is_active,
         )
 
     return factory
+
+
+@pytest.fixture
+def default_user(user_factory: Callable[[], User], default_password: str) -> User:
+    return user_factory("john.doe@test.com", "john.doe", default_password)
+
+
+@pytest.fixture
+def default_deleted_user(
+    user_factory: Callable[[], User], default_password: str
+) -> User:
+    """
+    A fixture depicting a user deleted 1 hour prior
+    """
+    return user_factory(
+        "john.doe@test.com",
+        "john.doe",
+        default_password,
+        deleted=datetime.now(timezone.utc) - timedelta(hours=1),
+        is_active=False,
+    )
 
 
 @pytest.fixture(scope="session")

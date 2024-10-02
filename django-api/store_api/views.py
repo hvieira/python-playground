@@ -16,7 +16,7 @@ from store_api.serializers import (
 
 class UserViewSet(ViewSet):
     permission_classes = [permissions.AllowAny]
-    queryset = User.objects.all()
+    queryset = User.objects.all().filter(deleted__isnull=True)
 
     def create(self, request: Request):
         serializer = CreateUserRequestSerializer(data=request.data)
@@ -26,6 +26,7 @@ class UserViewSet(ViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    # TODO add permission class that the token needs have write scope
     @action(
         url_path="update-password",
         detail=True,

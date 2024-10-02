@@ -15,4 +15,12 @@ class BaseEntity(models.Model):
 
 
 class User(AbstractUser, BaseEntity):
-    pass
+
+    def save(self, **kwargs):
+        self._validate_pre_save()
+        super().save(**kwargs)
+
+    def _validate_pre_save(self):
+        if self.deleted and self.is_active:
+            # TODO create a custom error for this
+            raise RuntimeError("A deleted user cannot be active")

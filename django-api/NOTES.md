@@ -14,6 +14,12 @@ extending - https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#exten
 This is the best tutorial to get password grant working. Obviously, the password grant is no longer supported from oauth 2.1, but in this case it works to explore using and configuring the lib
 https://django-oauth-toolkit.readthedocs.io/en/latest/rest-framework/getting_started.html
 
+### Validating custom users
+With the need to validate that deleted users could not be issued tokens or be generally active with the server,
+it is needed to have a custom validation of the user. While subclassing and implementing https://github.com/jazzband/django-oauth-toolkit/blob/3.0.1/oauth2_provider/oauth2_validators.py#L752 would likely work, `authenticate` returns AbstractUser instead of the user model
+which is a bit inconvenient. A custom authentication implementation would be needed.
+Because the default implementation uses `is_active` field, a custom `save()` can be used to validate that deleted users cannot be active.
+
 ## Testing
 Creating models when using `@pytest.mark.django_db` is slow and makes integration tests take a long time.
 
