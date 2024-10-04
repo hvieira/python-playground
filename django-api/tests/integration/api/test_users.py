@@ -1,14 +1,12 @@
 import uuid
-from typing import Callable
 
 import pytest
 from django.contrib.auth.hashers import check_password
 from django.test import Client
 from oauth2_provider.models import Application
-from requests import Response
 
 from store_api.models import User
-from tests.conftest import AuthActions
+from tests.conftest import AuthActions, UserFactory
 
 
 @pytest.mark.django_db()
@@ -108,7 +106,7 @@ class TestUserApi:
             default_user, default_oauth_app
         )
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             data={
                 "old_password": default_password,
@@ -136,7 +134,7 @@ class TestUserApi:
             default_user, default_oauth_app
         )
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             data={
                 "old_password": "wrongPassWord",
@@ -175,7 +173,7 @@ class TestUserApi:
             default_user, default_oauth_app
         )
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             data=request_body,
             headers={"Authorization": f"Bearer {access_token.token}"},
@@ -195,7 +193,7 @@ class TestUserApi:
     ):
         new_password = "Ch3ckITOuT!"
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             data={
                 "old_password": default_password,
@@ -217,7 +215,7 @@ class TestUserApi:
     ):
         new_password = "Ch3ckITOuT!"
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             data={
                 "old_password": default_password,
@@ -246,7 +244,7 @@ class TestUserApi:
             default_user, default_oauth_app
         )
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             data={
                 "old_password": default_password,
@@ -265,7 +263,7 @@ class TestUserApi:
         self,
         api_client: Client,
         auth_actions: AuthActions,
-        user_factory: Callable[[], User],
+        user_factory: UserFactory,
         default_oauth_app: Application,
     ):
         new_password = "password_wanted_to_be_set_by_user1"
@@ -273,10 +271,10 @@ class TestUserApi:
         user1_password = "stronkPassW"
         user2_password = "weak&vulnerable"
 
-        user1 = user_factory(
+        user1 = user_factory.create(
             email="user1@mailzzz.com", username="user1", password=user1_password
         )
-        user2 = user_factory(
+        user2 = user_factory.create(
             email="user2@mailzzz.com", username="user2", password=user2_password
         )
 
@@ -284,7 +282,7 @@ class TestUserApi:
             user1, default_oauth_app
         )
 
-        response: Response = api_client.post(
+        response = api_client.post(
             f"http://testserver/api/users/{user2.id}/update-password/",
             data={
                 "old_password": user2_password,
@@ -300,3 +298,89 @@ class TestUserApi:
         user2.refresh_from_db()
         assert check_password(user1_password, user1.password)
         assert check_password(user2_password, user2.password)
+
+    def test_get_user_public_profile(
+        self,
+        api_client: Client,
+        user_factory: UserFactory,
+        default_oauth_app: Application,
+        auth_actions: AuthActions,
+    ):
+        user1_password = "stronkPassW"
+        user2_password = "weak&vulnerable"
+        user1: User = user_factory.create(
+            email="user1@mailzzz.com", username="user1", password=user1_password
+        )
+        user2 = user_factory.create(
+            email="user2@mailzzz.com", username="user2", password=user2_password
+        )
+
+        user1_access_token = auth_actions.generate_api_access_token(
+            user1, default_oauth_app
+        )
+        user2_access_token = auth_actions.generate_api_access_token(
+            user2, default_oauth_app
+        )
+
+        # user1 can see user2 public profile
+        response = api_client.get(
+            f"http://testserver/api/users/{user2.id}/",
+            headers={"Authorization": f"Bearer {user1_access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "username": user2.username,
+            "date_joined": user2.date_joined.isoformat().replace(
+                "+00:00", "Z"
+            ),  # TODO find a better to handle this
+        }
+
+        # user2 can see user1 public profile
+        response = api_client.get(
+            f"http://testserver/api/users/{user1.id}/",
+            headers={"Authorization": f"Bearer {user2_access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "username": user1.username,
+            "date_joined": user1.date_joined.isoformat().replace(
+                "+00:00", "Z"
+            ),  # TODO find a better to handle this
+        }
+
+    def test_get_user_public_profile_needs_valid_access_token(
+        self,
+        api_client: Client,
+        user_factory: UserFactory,
+        default_oauth_app: Application,
+        auth_actions: AuthActions,
+    ):
+        user1_password = "stronkPassW"
+        user2_password = "weak&vulnerable"
+        user1: User = user_factory.create(
+            email="user1@mailzzz.com", username="user1", password=user1_password
+        )
+        user2 = user_factory.create(
+            email="user2@mailzzz.com", username="user2", password=user2_password
+        )
+
+        # user1 attempts to see user2 public profile
+        response = api_client.get(f"http://testserver/api/users/{user2.id}/")
+        assert response.status_code == 401
+
+        response = api_client.get(
+            f"http://testserver/api/users/{user2.id}/",
+            headers={"Authorization": "Bearer blah"},
+        )
+        assert response.status_code == 401
+
+        expired_access_token = auth_actions.generate_expired_api_access_token(
+            user1, default_oauth_app
+        )
+        response = api_client.get(
+            f"http://testserver/api/users/{user2.id}/",
+            headers={"Authorization": f"Bearer {expired_access_token.token}"},
+        )
+        assert response.status_code == 401

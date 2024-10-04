@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
+from oauth2_provider.contrib.rest_framework import permissions as token_permissions
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -11,12 +12,27 @@ from store_api.models import User
 from store_api.serializers import (
     CreateUserRequestSerializer,
     UpdateUserPasswordRequestSerializer,
+    UserPublicProfileSerializer,
 )
 
 
 class UserViewSet(ViewSet):
-    permission_classes = [permissions.AllowAny]
     queryset = User.objects.all().filter(deleted__isnull=True)
+    required_alternate_scopes = {
+        "GET": [["read"]],
+        "POST": [["write"]],
+    }
+
+    def get_permissions(self):
+        match self.action:
+            case "create":
+                permission_classes = [permissions.AllowAny]
+            case "retrieve":
+                permission_classes = [token_permissions.TokenMatchesOASRequirements]
+            case _:
+                permission_classes = []
+
+        return [permission() for permission in permission_classes]
 
     def create(self, request: Request):
         serializer = CreateUserRequestSerializer(data=request.data)
@@ -25,6 +41,15 @@ class UserViewSet(ViewSet):
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request: Request, pk: UUID = None):
+        if request.user.id == pk:
+            serializer = UserPublicProfileSerializer(request.user)
+        else:
+            wanted_user = User.objects.get(pk=pk)
+            serializer = UserPublicProfileSerializer(wanted_user)
+
+        return Response(serializer.data)
 
     # TODO add permission class that the token needs have write scope
     @action(

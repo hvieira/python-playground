@@ -14,7 +14,7 @@ Features:
     - [x] change applicable own user details
         - password
     - [WIP] view their own profile
-    - [WIP] view public information about other users
+    - [x] view public information about other users
     - manage their own products, but not of other users
         - edit product core information
             - name

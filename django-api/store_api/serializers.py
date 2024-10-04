@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from store_api.models import User
+
 # TODO these are constants OR configurables that should be in settings.py for example
 name_length = 50
 username_length = 50
@@ -17,3 +19,9 @@ class CreateUserRequestSerializer(serializers.Serializer):
 class UpdateUserPasswordRequestSerializer(serializers.Serializer):
     old_password = serializers.CharField(max_length=password_length)
     new_password = serializers.CharField(max_length=password_length)
+
+
+class UserPublicProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "date_joined"]

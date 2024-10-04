@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from time import perf_counter
-from typing import Callable
 
 import pytest
 from django.test import Client
@@ -26,10 +25,14 @@ def default_password() -> str:
     return "l33t!passwdzzz"
 
 
-@pytest.fixture
-def user_factory() -> Callable[[], User]:
-    def factory(
-        email: str, username: str, password: str, deleted=None, is_active=True
+class UserFactory:
+    def create(
+        self,
+        email: str,
+        username: str,
+        password: str,
+        deleted: None | datetime = None,
+        is_active: bool = True,
     ) -> User:
         return User.objects.create_user(
             email=email,
@@ -39,25 +42,28 @@ def user_factory() -> Callable[[], User]:
             is_active=is_active,
         )
 
-    return factory
+
+@pytest.fixture
+def user_factory() -> UserFactory:
+    return UserFactory()
 
 
 @pytest.fixture
-def default_user(user_factory: Callable[[], User], default_password: str) -> User:
-    return user_factory("john.doe@test.com", "john.doe", default_password)
+def default_user(user_factory: UserFactory, default_password: str) -> User:
+    return user_factory.create(
+        email="john.doe@test.com", username="john.doe", password=default_password
+    )
 
 
 @pytest.fixture
-def default_deleted_user(
-    user_factory: Callable[[], User], default_password: str
-) -> User:
+def default_deleted_user(user_factory: UserFactory, default_password: str) -> User:
     """
     A fixture depicting a user deleted 1 hour prior
     """
-    return user_factory(
-        "john.doe@test.com",
-        "john.doe",
-        default_password,
+    return user_factory.create(
+        email="john.doe@test.com",
+        username="john.doe",
+        password=default_password,
         deleted=datetime.now(timezone.utc) - timedelta(hours=1),
         is_active=False,
     )
@@ -79,7 +85,7 @@ def default_oauth_app_client_secret() -> str:
 
 
 @pytest.fixture
-def custom_admin_user(db, default_admin_password: str) -> User:
+def custom_admin_user(default_admin_password: str) -> User:
     t1 = perf_counter()
     val = User.objects.create_user(
         email="admin@testserver.com",
@@ -115,13 +121,14 @@ def default_oauth_app(
 class AuthActions:
 
     def generate_api_access_token(
-        self, user: User, oauth_app: Application, scopes="read write"
+        self, user: User, oauth_app: Application, scope="read write"
     ) -> AccessToken:
         return AccessToken.objects.create(
             user=user,
-            token="blahblahblah",
+            token=f"{user.username}-{datetime.now().isoformat()}-token",
             application=oauth_app,
             expires=datetime.now(timezone.utc) + timedelta(minutes=2),
+            scope=scope,
         )
 
     def generate_expired_api_access_token(
