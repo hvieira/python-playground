@@ -13,6 +13,13 @@ extending - https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#exten
 ### DRF lookup values conversion
 With a ViewSet (`GenericViewSet`, at least) `lookup_field` and `lookup_value_converter` can be set to automatically inject an UUID as the lookup value. But this has a requirement to use path converters - i.e. `use_regex_path=False` in a router
 
+## Model multi column keys (composite primary keys)
+This is not supported at the time of writting (08-10-2024) https://code.djangoproject.com/wiki/MultipleColumnPrimaryKeys
+
+The alternative is either:
+- https://docs.djangoproject.com/en/5.1/ref/models/constraints/#django.db.models.UniqueConstraint.fields
+- [DEPRECATED?] to use unique together constraint - https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
+
 ## Oauth Lib
 This is the best tutorial to get password grant working. Obviously, the password grant is no longer supported from oauth 2.1, but in this case it works to explore using and configuring the lib
 https://django-oauth-toolkit.readthedocs.io/en/latest/rest-framework/getting_started.html

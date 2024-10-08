@@ -35,18 +35,30 @@ class Product(BaseEntity):
             )
         ]
 
+    STATE_DRAFT = "DRAFT"
+    STATE_AVAILABLE = "AVAILABLE"
+    STATE_SOLD_OUT = "SOLD_OUT"
+    STATE_DELETED = "DELETED"
+    STATES = {
+        STATE_DRAFT: "Draft",
+        STATE_AVAILABLE: "Available",
+        STATE_SOLD_OUT: "Sold Out",
+        STATE_DELETED: "Deleted",
+    }
+
     title = models.CharField(null=False, max_length=100)
     description = models.CharField(null=False, max_length=1000)
     price = models.IntegerField(null=False)
-
-    def save(self, **kwargs):
-        self._validate_pre_save()
-        super().save(**kwargs)
+    state = models.CharField(null=False, choices=STATES, default=STATE_DRAFT)
 
 
 class ProductStock(models.Model):
     class Meta:
         constraints = [
+            models.UniqueConstraint(
+                fields=["variant", "product"],
+                name="%(app_label)s_%(class)s_unique_per_product_and_variant",
+            ),
             models.CheckConstraint(
                 condition=models.Q(available__gte=0),
                 name="%(app_label)s_%(class)s_available_gte_zero",
@@ -61,7 +73,11 @@ class ProductStock(models.Model):
             ),
         ]
 
-    id = None
+    VARIANT_DEFAULT = "default"
+
+    # the default variant for products which only have 1 variant
+    variant = models.CharField(default=VARIANT_DEFAULT)
+    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
     available = models.IntegerField(null=False)
     reserved = models.IntegerField(null=False)
     sold = models.IntegerField(null=False)
