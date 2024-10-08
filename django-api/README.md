@@ -13,9 +13,9 @@ Features:
     - [x] authenticate and get a access token for the API
     - [x] change applicable own user details
         - password
-    - [WIP] view their own profile
+    - [x] view their own profile
     - [x] view public information about other users
-    - manage their own products, but not of other users
+    - [WIP] manage their own products, but not of other users
         - edit product core information
             - name
             - description
