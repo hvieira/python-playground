@@ -6,17 +6,21 @@ from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from store_api.models import User
 from store_api.serializers import (
     CreateUserRequestSerializer,
     UpdateUserPasswordRequestSerializer,
+    UserProfileSerializer,
     UserPublicProfileSerializer,
 )
 
 
-class UserViewSet(ViewSet):
+class UserViewSet(GenericViewSet):
+    lookup_field = "id"
+    lookup_value_converter = "uuid"
+
     queryset = User.objects.all().filter(deleted__isnull=True)
     required_alternate_scopes = {
         "GET": [["read"]],
@@ -30,7 +34,7 @@ class UserViewSet(ViewSet):
             case "retrieve":
                 permission_classes = [token_permissions.TokenMatchesOASRequirements]
             case _:
-                permission_classes = []
+                permission_classes = [token_permissions.IsAuthenticated]
 
         return [permission() for permission in permission_classes]
 
@@ -42,29 +46,28 @@ class UserViewSet(ViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def retrieve(self, request: Request, pk: UUID = None):
-        if request.user.id == pk:
-            serializer = UserPublicProfileSerializer(request.user)
+    def retrieve(self, request: Request, id: UUID = None):
+        if request.user.id == id:
+            serializer = UserProfileSerializer(request.user)
         else:
-            wanted_user = User.objects.get(pk=pk)
+            wanted_user = self.queryset.get(id=id)
             serializer = UserPublicProfileSerializer(wanted_user)
 
         return Response(serializer.data)
 
-    # TODO add permission class that the token needs have write scope
     @action(
         url_path="update-password",
         detail=True,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[token_permissions.TokenMatchesOASRequirements],
         methods=["post"],
     )
-    def update_password(self, request: Request, pk: UUID = None):
+    def update_password(self, request: Request, id: UUID = None):
         serializer = UpdateUserPasswordRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         authenticated_user: User = request.user
-        path_user: User = self.queryset.get(pk=pk)
+        path_user: User = self.queryset.get(id=id)
 
         if not path_user or path_user.id != authenticated_user.id:
             return Response(status=status.HTTP_401_UNAUTHORIZED)

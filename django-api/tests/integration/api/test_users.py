@@ -384,3 +384,31 @@ class TestUserApi:
             headers={"Authorization": f"Bearer {expired_access_token.token}"},
         )
         assert response.status_code == 401
+
+    def test_get_user_own_profile(
+        self,
+        api_client: Client,
+        default_user: User,
+        default_oauth_app: Application,
+        auth_actions: AuthActions,
+    ):
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        # user1 can see user2 public profile
+        response = api_client.get(
+            f"http://testserver/api/users/{default_user.id}/",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "first_name": default_user.first_name,
+            "last_name": default_user.last_name,
+            "username": default_user.username,
+            "email": default_user.email,
+            "date_joined": default_user.date_joined.isoformat().replace(
+                "+00:00", "Z"
+            ),  # TODO find a better to handle this
+        }

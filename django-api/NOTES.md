@@ -10,6 +10,9 @@ custom: https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#using-a-c
 
 extending - https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#extending-the-existing-user-model
 
+### DRF lookup values conversion
+With a ViewSet (`GenericViewSet`, at least) `lookup_field` and `lookup_value_converter` can be set to automatically inject an UUID as the lookup value. But this has a requirement to use path converters - i.e. `use_regex_path=False` in a router
+
 ## Oauth Lib
 This is the best tutorial to get password grant working. Obviously, the password grant is no longer supported from oauth 2.1, but in this case it works to explore using and configuring the lib
 https://django-oauth-toolkit.readthedocs.io/en/latest/rest-framework/getting_started.html

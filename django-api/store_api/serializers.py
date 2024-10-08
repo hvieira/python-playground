@@ -25,3 +25,9 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["username", "date_joined"]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "date_joined", "first_name", "last_name", "email"]
