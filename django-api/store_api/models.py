@@ -77,7 +77,9 @@ class ProductStock(models.Model):
 
     # the default variant for products which only have 1 variant
     variant = models.CharField(default=VARIANT_DEFAULT)
-    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
+    product = models.ForeignKey(
+        Product, on_delete=models.DO_NOTHING, related_name="stock"
+    )
     available = models.IntegerField(null=False)
     reserved = models.IntegerField(null=False)
     sold = models.IntegerField(null=False)

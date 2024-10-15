@@ -21,6 +21,7 @@ Features:
             - description
             - stock
         - dissociate/associate tags
+    - see other users store (any user products)
     - can buy products (from any user)
         - list all products (ordered by newest creation date)
         - search for products

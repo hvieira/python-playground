@@ -8,9 +8,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from store_api.models import User
+from store_api.models import Product, User
 from store_api.serializers import (
+    CreateProductRequestSerializer,
     CreateUserRequestSerializer,
+    ProductSerializer,
     UpdateUserPasswordRequestSerializer,
     UserProfileSerializer,
     UserPublicProfileSerializer,
@@ -78,5 +80,46 @@ class UserViewSet(GenericViewSet):
             authenticated_user.set_password(serializer.validated_data["new_password"])
             authenticated_user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductViewSet(GenericViewSet):
+    lookup_field = "id"
+    lookup_value_converter = "uuid"
+
+    queryset = Product.objects.all().filter(deleted__isnull=True)
+    required_alternate_scopes = {
+        "GET": [["read"]],
+        "POST": [["write"]],
+    }
+
+    serializer_class = ProductSerializer
+
+    def get_permissions(self):
+        match self.action:
+            case _:
+                permission_classes = [token_permissions.TokenMatchesOASRequirements]
+
+        return [permission() for permission in permission_classes]
+
+    def create(self, request: Request):
+        serializer = CreateProductRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            product = Product(
+                title=serializer.validated_data["title"],
+                description=serializer.validated_data["description"],
+                price=serializer.validated_data["price"],
+            )
+            product.save()
+            product.stock.create(
+                available=serializer.validated_data["available_stock"],
+                reserved=0,
+                sold=0,
+            )
+
+            response_serializer = self.serializer_class(product)
+
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
