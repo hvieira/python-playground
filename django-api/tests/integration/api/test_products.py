@@ -74,3 +74,69 @@ class TestUserApi:
                 sold=0,
             )
         ]
+
+    @pytest.mark.parametrize(
+        "bad_request_body",
+        [
+            {
+                "title": "product_title",
+                "description": "product_description",
+                "price": 100,
+            },
+            {
+                "title": "product_title",
+                "description": "product_description",
+                "available_stock": 7,
+            },
+            {
+                "title": "product_title",
+                "price": 100,
+                "available_stock": 7,
+            },
+            {
+                "description": "product_description",
+                "price": 100,
+                "available_stock": 7,
+            },
+            # product cannot have price less or equal to zero
+            {
+                "title": "product_title",
+                "description": "product_description",
+                "price": 0,
+                "available_stock": 1,
+            },
+            {
+                "title": "product_title",
+                "description": "product_description",
+                "price": -1,
+                "available_stock": 1,
+            },
+            # product cannot have negative stock
+            {
+                "title": "product_title",
+                "description": "product_description",
+                "price": 100,
+                "available_stock": -1,
+            },
+        ],
+    )
+    def test_create_product_malformed_request(
+        self,
+        bad_request_body,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+    ):
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.post(
+            "http://testserver/api/products/",
+            data=bad_request_body,
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 400
+        assert Product.objects.count() == 0

@@ -24,8 +24,8 @@ class UpdateUserPasswordRequestSerializer(serializers.Serializer):
 class CreateProductRequestSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=100)
     description = serializers.CharField(max_length=1000)
-    price = serializers.IntegerField()
-    available_stock = serializers.IntegerField()
+    price = serializers.IntegerField(min_value=1)
+    available_stock = serializers.IntegerField(min_value=0)
 
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
