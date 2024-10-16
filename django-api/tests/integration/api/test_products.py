@@ -46,12 +46,11 @@ class TestUserApi:
             "title": product_title,
             "description": product_description,
             "price": product_price,
-            "stock": [
-                {
-                    "variant": "default",
+            "stock": {
+                "default": {
                     "available": product_stock,
                     "reserved": 0,
                     "sold": 0,
                 }
-            ],
+            },
         }

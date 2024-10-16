@@ -20,6 +20,10 @@ The alternative is either:
 - https://docs.djangoproject.com/en/5.1/ref/models/constraints/#django.db.models.UniqueConstraint.fields
 - [DEPRECATED?] to use unique together constraint - https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
 
+## Django Typing
+Django has quite a bit of magic - including classes defined at runtime. An example is RelatedManager which fails to be imported.
+The following https://github.com/typeddjango/django-stubs seems to be able to add some support for this
+
 ## Oauth Lib
 This is the best tutorial to get password grant working. Obviously, the password grant is no longer supported from oauth 2.1, but in this case it works to explore using and configuring the lib
 https://django-oauth-toolkit.readthedocs.io/en/latest/rest-framework/getting_started.html

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from store_api.models import Product, ProductStock, User
+from store_api.models import Product, User
 
 # TODO these are constants OR configurables that should be in settings.py for example
 name_length = 50
@@ -40,10 +40,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ["username", "date_joined", "first_name", "last_name", "email"]
 
 
-class ProductStockSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductStock
-        fields = ["variant", "available", "reserved", "sold"]
+class ProductStockSerializer(serializers.RelatedField):
+    def to_representation(self, value):
+        # value is of type RelatedManager[ProductStock] and is defined at runtime
+        return {
+            s.variant: {
+                "available": s.available,
+                "reserved": s.reserved,
+                "sold": s.sold,
+            }
+            for s in value.all()
+        }
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -51,6 +58,4 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ["id", "title", "description", "price", "stock"]
 
-    # TODO https://www.django-rest-framework.org/api-guide/relations/#custom-relational-fields
-    # ideally stock should be a dict with variants as key to the stock info
-    stock = ProductStockSerializer(many=True, read_only=True)
+    stock = ProductStockSerializer(read_only=True)
