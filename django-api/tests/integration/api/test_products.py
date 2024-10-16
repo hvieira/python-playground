@@ -2,7 +2,7 @@ import pytest
 from django.test import Client
 from oauth2_provider.models import Application
 
-from store_api.models import User
+from store_api.models import Product, ProductStock, User
 from tests.conftest import AuthActions
 
 
@@ -54,3 +54,18 @@ class TestUserApi:
                 }
             },
         }
+
+        product_in_db = Product.objects.get(id=assigned_product_id)
+        assert product_in_db.title == product_title
+        assert product_in_db.description == product_description
+        assert product_in_db.price == product_price
+        assert list(product_in_db.stock.all()) == [
+            ProductStock(
+                id=1,
+                variant="default",
+                product=product_in_db,
+                available=product_stock,
+                reserved=0,
+                sold=0,
+            )
+        ]
