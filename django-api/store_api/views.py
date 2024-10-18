@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
+from django.db import transaction
 from oauth2_provider.contrib.rest_framework import permissions as token_permissions
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -13,6 +14,7 @@ from store_api.serializers import (
     CreateProductRequestSerializer,
     CreateUserRequestSerializer,
     ProductSerializer,
+    UpdateProductRequestSerializer,
     UpdateUserPasswordRequestSerializer,
     UserProfileSerializer,
     UserPublicProfileSerializer,
@@ -92,6 +94,7 @@ class ProductViewSet(GenericViewSet):
     required_alternate_scopes = {
         "GET": [["read"]],
         "POST": [["write"]],
+        "PUT": [["write"]],
     }
 
     serializer_class = ProductSerializer
@@ -112,6 +115,7 @@ class ProductViewSet(GenericViewSet):
                 price=serializer.validated_data["price"],
                 owner_user=request.user,
             )
+
             product.save()
             product.stock.create(
                 available=serializer.validated_data["available_stock"],
@@ -124,3 +128,27 @@ class ProductViewSet(GenericViewSet):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request: Request, id: UUID = None):
+        serializer = UpdateProductRequestSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # TODO what if the id provided is a product that does not exist
+        product = self.queryset.get(id=id)
+
+        # TODO add handling if the user is not the owner
+        if product.owner_user == request.user:
+            product.title = serializer.validated_data["title"]
+            product.description = serializer.validated_data["description"]
+            product.price = serializer.validated_data["price"]
+
+            with transaction.atomic():
+                product.stock.filter(variant="default").update(
+                    available=serializer.validated_data["available_stock"]
+                )
+                product.save()
+
+            response_serializer = self.serializer_class(product)
+            return Response(response_serializer.data)

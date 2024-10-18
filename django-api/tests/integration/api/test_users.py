@@ -21,6 +21,7 @@ class TestUserApi:
 
         response = api_client.post(
             "http://testserver/api/users/",
+            content_type="application/json",
             data={
                 "first_name": first_name,
                 "last_name": last_name,
@@ -86,6 +87,7 @@ class TestUserApi:
     def test_create_user_invalid_request(self, api_client: Client, request_body):
         response = api_client.post(
             "http://testserver/api/users/",
+            content_type="application/json",
             data=request_body,
         )
 
@@ -108,6 +110,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
+            content_type="application/json",
             data={
                 "old_password": default_password,
                 "new_password": new_password,
@@ -136,6 +139,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
+            content_type="application/json",
             data={
                 "old_password": "wrongPassWord",
                 "new_password": new_password,
@@ -175,6 +179,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
+            content_type="application/json",
             data=request_body,
             headers={"Authorization": f"Bearer {access_token.token}"},
         )
@@ -195,6 +200,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
+            content_type="application/json",
             data={
                 "old_password": default_password,
                 "new_password": new_password,
@@ -217,6 +223,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
+            content_type="application/json",
             data={
                 "old_password": default_password,
                 "new_password": new_password,
@@ -246,6 +253,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
+            content_type="application/json",
             data={
                 "old_password": default_password,
                 "new_password": new_password,
@@ -284,6 +292,7 @@ class TestUserApi:
 
         response = api_client.post(
             f"http://testserver/api/users/{user2.id}/update-password/",
+            content_type="application/json",
             data={
                 "old_password": user2_password,
                 "new_password": new_password,

@@ -17,7 +17,7 @@ def api_client() -> Client:
     Fixture to provide an API client using JSON as default content-type
     :return: django.test.Client
     """
-    return Client(headers={"Content-Type": "application/json"})
+    return Client()
 
 
 @pytest.fixture(scope="session")
@@ -46,6 +46,7 @@ class UserFactory:
 class ProductFactory:
     def create(
         self,
+        owner: User,
         title: str,
         description: str,
         price: str,
@@ -56,7 +57,11 @@ class ProductFactory:
     ) -> Product:
 
         product = Product(
-            title=title, description=description, price=price, deleted=deleted
+            owner_user=owner,
+            title=title,
+            description=description,
+            price=price,
+            deleted=deleted,
         )
         product.save()
 
