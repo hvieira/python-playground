@@ -56,6 +56,6 @@ class ProductStockSerializer(serializers.RelatedField):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ["id", "title", "description", "price", "stock"]
+        fields = ["id", "title", "description", "price", "stock", "owner_user_id"]
 
     stock = ProductStockSerializer(read_only=True)

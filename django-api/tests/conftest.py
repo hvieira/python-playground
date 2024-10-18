@@ -6,7 +6,7 @@ import pytest
 from django.test import Client
 from oauth2_provider.models import AccessToken, Application
 
-from store_api.models import User
+from store_api.models import Product, User
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,35 @@ class UserFactory:
             deleted=deleted,
             is_active=is_active,
         )
+
+
+class ProductFactory:
+    def create(
+        self,
+        title: str,
+        description: str,
+        price: str,
+        stock_available=1,
+        stock_reserved=0,
+        stock_sold=0,
+        deleted: None | datetime = None,
+    ) -> Product:
+
+        product = Product(
+            title=title, description=description, price=price, deleted=deleted
+        )
+        product.save()
+
+        product.stock.create(
+            available=stock_available, reserved=stock_reserved, sold=stock_sold
+        )
+
+        return product
+
+
+@pytest.fixture
+def product_factory() -> ProductFactory:
+    return ProductFactory()
 
 
 @pytest.fixture

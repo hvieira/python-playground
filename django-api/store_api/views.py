@@ -110,6 +110,7 @@ class ProductViewSet(GenericViewSet):
                 title=serializer.validated_data["title"],
                 description=serializer.validated_data["description"],
                 price=serializer.validated_data["price"],
+                owner_user=request.user,
             )
             product.save()
             product.stock.create(

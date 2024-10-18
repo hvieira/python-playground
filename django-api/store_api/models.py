@@ -50,6 +50,7 @@ class Product(BaseEntity):
     description = models.CharField(null=False, max_length=1000)
     price = models.IntegerField(null=False)
     state = models.CharField(null=False, choices=STATES, default=STATE_DRAFT)
+    owner_user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
 
 class ProductStock(models.Model):

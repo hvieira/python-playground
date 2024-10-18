@@ -45,6 +45,7 @@ class TestUserApi:
         assigned_product_id = response.json()["id"]
         assert response.json() == {
             "id": assigned_product_id,
+            "owner_user_id": str(default_user.id),
             "title": product_title,
             "description": product_description,
             "price": product_price,
@@ -63,6 +64,7 @@ class TestUserApi:
             title=product_title,
             description=product_description,
             price=product_price,
+            owner_user=default_user,
         )
         assert list(product_in_db.stock.all()) == [
             ProductStock(
