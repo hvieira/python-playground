@@ -135,8 +135,10 @@ class ProductViewSet(GenericViewSet):
         if not serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # TODO what if the id provided is a product that does not exist
-        product = self.queryset.get(id=id)
+        try:
+            product = self.queryset.get(id=id)
+        except Product.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         if product.owner_user != request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)

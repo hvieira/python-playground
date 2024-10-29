@@ -1,3 +1,4 @@
+import uuid
 from uuid import UUID
 
 import pytest
@@ -295,3 +296,28 @@ class TestUserApi:
             headers={"Authorization": f"Bearer {user2_access_token.token}"},
         )
         assert response.status_code == 403
+
+    def test_update_non_existing_product(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+    ):
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.put(
+            f"http://testserver/api/products/{str(uuid.uuid4())}/",
+            content_type="application/json",
+            data={
+                "title": "new_product_title",
+                "description": "new_product_description",
+                "price": 10000,
+                "available_stock": 71,
+            },
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 404
