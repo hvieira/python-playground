@@ -138,17 +138,18 @@ class ProductViewSet(GenericViewSet):
         # TODO what if the id provided is a product that does not exist
         product = self.queryset.get(id=id)
 
-        # TODO add handling if the user is not the owner
-        if product.owner_user == request.user:
-            product.title = serializer.validated_data["title"]
-            product.description = serializer.validated_data["description"]
-            product.price = serializer.validated_data["price"]
+        if product.owner_user != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
-            with transaction.atomic():
-                product.stock.filter(variant="default").update(
-                    available=serializer.validated_data["available_stock"]
-                )
-                product.save()
+        product.title = serializer.validated_data["title"]
+        product.description = serializer.validated_data["description"]
+        product.price = serializer.validated_data["price"]
 
-            response_serializer = self.serializer_class(product)
-            return Response(response_serializer.data)
+        with transaction.atomic():
+            product.stock.filter(variant="default").update(
+                available=serializer.validated_data["available_stock"]
+            )
+            product.save()
+
+        response_serializer = self.serializer_class(product)
+        return Response(response_serializer.data)

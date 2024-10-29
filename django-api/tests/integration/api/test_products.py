@@ -5,7 +5,7 @@ from django.test import Client
 from oauth2_provider.models import Application
 
 from store_api.models import Product, User
-from tests.conftest import AuthActions, ProductFactory
+from tests.conftest import AuthActions, ProductFactory, UserFactory
 
 
 @pytest.mark.django_db()
@@ -239,3 +239,59 @@ class TestUserApi:
                 "sold": 71,
             }
         ]
+
+    def test_users_cannot_update_other_users_products(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_oauth_app: Application,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+    ):
+        user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
+        user2 = user_factory.create("user2@user2.com", "user2", "easyPass")
+
+        user1_product = product_factory.create(
+            owner=user1,
+            title="user1_product",
+            description="user1_product_description",
+            price=1003,
+        )
+
+        user2_product = product_factory.create(
+            owner=user2,
+            title="user2_product",
+            description="user2_product_description",
+            price=709,
+        )
+
+        malicious_update_request_body = {
+            "title": "bad product",
+            "description": "this product is a scam",
+            "price": 1,
+            "available_stock": 0,
+        }
+
+        user1_access_token = auth_actions.generate_api_access_token(
+            user1, default_oauth_app
+        )
+
+        response = api_client.put(
+            f"http://testserver/api/products/{str(user2_product.id)}/",
+            content_type="application/json",
+            data=malicious_update_request_body,
+            headers={"Authorization": f"Bearer {user1_access_token.token}"},
+        )
+        assert response.status_code == 403
+
+        user2_access_token = auth_actions.generate_api_access_token(
+            user2, default_oauth_app
+        )
+
+        response = api_client.put(
+            f"http://testserver/api/products/{str(user1_product.id)}/",
+            content_type="application/json",
+            data=malicious_update_request_body,
+            headers={"Authorization": f"Bearer {user2_access_token.token}"},
+        )
+        assert response.status_code == 403
