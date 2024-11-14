@@ -321,3 +321,48 @@ class TestUserApi:
         )
 
         assert response.status_code == 404
+
+    def test_users_can_delete_their_own_products(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_oauth_app: Application,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+    ):
+        user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
+        user2 = user_factory.create("user2@user2.com", "user2", "easyPass")
+
+        user1_product = product_factory.create(
+            owner=user1,
+            title="user1_product",
+            description="user1_product_description",
+            price=1003,
+        )
+
+        user2_product = product_factory.create(
+            owner=user2,
+            title="user2_product",
+            description="user2_product_description",
+            price=709,
+        )
+
+        user1_access_token = auth_actions.generate_api_access_token(
+            user1, default_oauth_app
+        )
+
+        response = api_client.delete(
+            f"http://testserver/api/products/{str(user1_product.id)}/",
+            headers={"Authorization": f"Bearer {user1_access_token.token}"},
+        )
+        assert response.status_code == 204
+
+        response = api_client.delete(
+            f"http://testserver/api/products/{str(user2_product.id)}/",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {user1_access_token.token}"},
+        )
+        assert response.status_code == 403
+
+
+# TODO search/query for products do not return deleted products

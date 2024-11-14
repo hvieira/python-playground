@@ -6,8 +6,8 @@ This API mimics a store
 
 Features:
 - store has:
-    - products that are owned by users
-    - products can be associated with tags
+    - [x] products that are owned by users
+    - [WIP] products can be associated with tags
 - users can (via the API):
     - [x] register
     - [x] authenticate and get a access token for the API
@@ -15,20 +15,20 @@ Features:
         - password
     - [x] view their own profile
     - [x] view public information about other users
-    - [WIP] manage their own products, but not of other users
+    - [x] manage their own products, but not of other users
         - edit product core information
             - name
             - description
             - stock
-        - dissociate/associate tags
+        - [WIP] dissociate/associate tags
     - see other users store (any user products)
     - can buy products (from any user)
         - list all products (ordered by newest creation date)
         - search for products
         - put products into a bag
         - create order from a bag
-    - add new tags
-    - search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
+    - [WIP] add new tags
+    - [WIP] search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
 
 Technical features:
 - [x] backing postgres DB
