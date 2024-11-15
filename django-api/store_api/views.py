@@ -14,6 +14,7 @@ from store_api.models import Product, User
 from store_api.serializers import (
     CreateProductRequestSerializer,
     CreateUserRequestSerializer,
+    ProductListSerializer,
     ProductSerializer,
     UpdateProductRequestSerializer,
     UpdateUserPasswordRequestSerializer,
@@ -178,3 +179,33 @@ class ProductViewSet(GenericViewSet):
             product.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request: Request):
+        # TODO set these as "constants" somewhere
+        default_page_size = 20
+
+        # TODO offset is to be based on updated timestamp
+        results_queryset = self.queryset.order_by("-updated").all()
+
+        serializer = ProductListSerializer(
+            self._list_and_paging_metadata(default_page_size, results_queryset)
+        )
+        return Response(serializer.data)
+
+    def _list_and_paging_metadata(self, page_size: int, queryset):
+        paged = queryset[:page_size]
+        total_results = paged.count()
+        results = list(paged)
+        num_results = len(results)
+        has_next = total_results > num_results
+
+        print(results)
+
+        return {
+            "metadata": {
+                "page_size": 20,
+                "offset_date": results[num_results - 1].updated,
+                "has_next": has_next,
+            },
+            "data": results,
+        }

@@ -66,3 +66,14 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "description", "price", "stock", "owner_user_id"]
 
     stock = ProductStockSerializer(read_only=True)
+
+
+class PagingMetadataSerializer(serializers.Serializer):
+    page_size = serializers.IntegerField()
+    offset_date = serializers.DateTimeField()
+    has_next = serializers.BooleanField()
+
+
+class ProductListSerializer(serializers.Serializer):
+    metadata = PagingMetadataSerializer(read_only=True)
+    data = ProductSerializer(many=True)

@@ -24,7 +24,7 @@ Features:
     - see other users store (any user products)
     - can buy products (from any user)
         - list all products (ordered by newest creation date)
-        - search for products
+        - search for products (via title, description and tags)
         - put products into a bag
         - create order from a bag
     - [WIP] add new tags
