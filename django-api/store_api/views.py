@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
@@ -177,29 +178,38 @@ class ProductViewSet(GenericViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request: Request):
-        # TODO set these as "constants" somewhere
-        default_page_size = 20
-
-        # TODO offset is to be based on updated timestamp
+        page_size, offset = self._paging_params_from_request(request)
         results_queryset = self.queryset.order_by("-updated").all()
 
+        if offset:
+            results_queryset = results_queryset.filter(updated__lt=offset)
+
         serializer = ProductListSerializer(
-            self._list_and_paging_metadata(default_page_size, results_queryset)
+            self._list_and_paging_metadata(page_size, results_queryset)
         )
         return Response(serializer.data)
 
+    def _paging_params_from_request(self, request: Request) -> tuple[int, datetime]:
+        # TODO set these as "constants" somewhere
+        default_page_size = 20
+
+        page_size = int(request.query_params.get("page_size", default_page_size))
+        offset = request.query_params.get("offset", None)
+        if offset:
+            offset = datetime.fromisoformat(offset.replace("Z", "+00:00"))
+
+        return page_size, offset
+
     def _list_and_paging_metadata(self, page_size: int, queryset):
+        total_results = queryset.all().count()
         paged = queryset[:page_size]
-        total_results = paged.count()
         results = list(paged)
         num_results = len(results)
         has_next = total_results > num_results
 
-        print(results)
-
         return {
             "metadata": {
-                "page_size": 20,
+                "page_size": page_size,
                 "offset_date": results[num_results - 1].updated,
                 "has_next": has_next,
             },
