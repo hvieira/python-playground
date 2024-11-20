@@ -2,7 +2,6 @@ from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
-from django.utils import timezone
 from oauth2_provider.contrib.rest_framework import permissions as token_permissions
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -172,10 +171,7 @@ class ProductViewSet(GenericViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         with transaction.atomic():
-            # stock of a deleted product is hard deleted to save space
-            # if an undelete operation is to be supported, it needs to restore the default variant in stock
-            product.stock.all().delete()
-            product.deleted = timezone.now()
+            product.delete()
             product.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

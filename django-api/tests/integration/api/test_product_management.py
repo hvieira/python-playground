@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from uuid import UUID
 
 import pytest
@@ -346,6 +347,7 @@ class TestProductManagementAPI:
             description="user2_product_description",
             price=709,
         )
+        user2_product_original_stock = list(user2_product.stock.all())
 
         user1_access_token = auth_actions.generate_api_access_token(
             user1, default_oauth_app
@@ -357,9 +359,20 @@ class TestProductManagementAPI:
         )
         assert response.status_code == 204
 
-        # cannot deleted
+        user1_product.refresh_from_db()
+        assert user1_product.state == Product.STATE_DELETED
+        assert user1_product.deleted is not None
+        assert type(user1_product.deleted) is datetime
+        assert user1_product.stock.all().count() == 0
+
+        # cannot deleted other users products
         response = api_client.delete(
             f"http://testserver/api/products/{str(user2_product.id)}/",
             headers={"Authorization": f"Bearer {user1_access_token.token}"},
         )
         assert response.status_code == 403
+
+        user2_product.refresh_from_db()
+        assert user2_product.state == Product.STATE_AVAILABLE
+        assert list(user2_product.stock.all()) == user2_product_original_stock
+        assert user2_product.deleted is None

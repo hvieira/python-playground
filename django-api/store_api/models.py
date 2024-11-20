@@ -2,6 +2,8 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
+from django_fsm import FSMField, transition
 
 
 class BaseEntity(models.Model):
@@ -49,8 +51,18 @@ class Product(BaseEntity):
     title = models.CharField(null=False, max_length=100)
     description = models.CharField(null=False, max_length=1000)
     price = models.IntegerField(null=False)
-    state = models.CharField(null=False, choices=STATES, default=STATE_DRAFT)
+    state = FSMField(null=False, choices=STATES, default=STATE_DRAFT)
     owner_user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+    @transition(field=state, source="+", target=STATE_DELETED)
+    def delete(self):
+        """
+        Deletes a product, changing state to Deleted and adding timestamp to deleted field. The stock
+        will also be deleted to save space.
+        """
+        # if an undelete operation is to be supported, it needs to restore the default variant in stock
+        self.stock.all().delete()
+        self.deleted = timezone.now()
 
 
 class ProductStock(models.Model):

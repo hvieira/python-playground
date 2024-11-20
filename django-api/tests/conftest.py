@@ -50,6 +50,7 @@ class ProductFactory:
         title: str,
         description: str,
         price: str,
+        state: str = Product.STATE_AVAILABLE,
         stock_available=1,
         stock_reserved=0,
         stock_sold=0,
@@ -58,6 +59,7 @@ class ProductFactory:
 
         product = Product(
             owner_user=owner,
+            state=state,
             title=title,
             description=description,
             price=price,
