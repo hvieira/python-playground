@@ -10,7 +10,7 @@ from tests.conftest import AuthActions, UserFactory
 
 
 @pytest.mark.django_db()
-class TestUserApi:
+class TestUserAPI:
 
     def test_create_user(self, api_client: Client):
         first_name = "John"
