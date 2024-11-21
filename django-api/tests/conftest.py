@@ -92,6 +92,16 @@ def default_user(user_factory: UserFactory, default_password: str) -> User:
 
 
 @pytest.fixture
+def default_staff_user(default_admin_password: str) -> User:
+    return User.objects.create_user(
+        email="staff@testserver.com",
+        username="staff@testserver",
+        password=default_admin_password,
+        is_staff=True,
+    )
+
+
+@pytest.fixture
 def default_deleted_user(user_factory: UserFactory, default_password: str) -> User:
     """
     A fixture depicting a user deleted 1 hour prior

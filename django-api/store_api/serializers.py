@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from store_api.models import Product, User
+from store_api.models import Product, Tag, User
 
 # TODO these are constants OR configurables that should be in settings.py for example
 name_length = 50
@@ -77,3 +77,9 @@ class PagingMetadataSerializer(serializers.Serializer):
 class ProductListSerializer(serializers.Serializer):
     metadata = PagingMetadataSerializer(read_only=True)
     data = ProductSerializer(many=True)
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "name", "description"]

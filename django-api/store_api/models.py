@@ -28,6 +28,11 @@ class User(AbstractUser, BaseEntity):
             raise RuntimeError("A deleted user cannot be active")
 
 
+class Tag(BaseEntity):
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=200, null=False)
+
+
 class Product(BaseEntity):
     class Meta:
         constraints = [
@@ -53,6 +58,7 @@ class Product(BaseEntity):
     price = models.IntegerField(null=False)
     state = FSMField(null=False, choices=STATES, default=STATE_DRAFT)
     owner_user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    tags = models.ManyToManyField(Tag)
 
     @transition(field=state, source="+", target=STATE_DELETED)
     def delete(self):

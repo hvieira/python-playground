@@ -6,16 +6,18 @@ from django.db import transaction
 from oauth2_provider.contrib.rest_framework import permissions as token_permissions
 from rest_framework import permissions, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from store_api.models import Product, User
+from store_api.models import Product, Tag, User
 from store_api.serializers import (
     CreateProductRequestSerializer,
     CreateUserRequestSerializer,
     ProductListSerializer,
     ProductSerializer,
+    TagSerializer,
     UpdateProductRequestSerializer,
     UpdateUserPasswordRequestSerializer,
     UserProfileSerializer,
@@ -215,3 +217,9 @@ class ProductViewSet(GenericViewSet):
             },
             "data": results,
         }
+
+
+class TagViewSet(ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [IsAdminUser]

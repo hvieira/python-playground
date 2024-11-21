@@ -27,8 +27,9 @@ Features:
         - search for products (via title, description and tags)
         - put products into a bag
         - create order from a bag
-    - [WIP] add new tags
     - [WIP] search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
+- staff can:
+    - [WIP] manage tags (name, description)
 
 Technical features:
 - [x] backing postgres DB
