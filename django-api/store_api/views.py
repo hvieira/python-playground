@@ -17,6 +17,7 @@ from store_api.serializers import (
     CreateUserRequestSerializer,
     ProductListSerializer,
     ProductSerializer,
+    TagListSerializer,
     TagSerializer,
     UpdateProductRequestSerializer,
     UpdateUserPasswordRequestSerializer,
@@ -187,7 +188,7 @@ class ProductViewSet(GenericViewSet):
             results_queryset = results_queryset.filter(updated__lt=offset)
 
         serializer = ProductListSerializer(
-            self._list_and_paging_metadata(page_size, results_queryset)
+            _list_and_paging_metadata(page_size, results_queryset, lambda p: p.updated)
         )
         return Response(serializer.data)
 
@@ -202,24 +203,35 @@ class ProductViewSet(GenericViewSet):
 
         return page_size, offset
 
-    def _list_and_paging_metadata(self, page_size: int, queryset):
-        total_results = queryset.all().count()
-        paged = queryset[:page_size]
-        results = list(paged)
-        num_results = len(results)
-        has_next = total_results > num_results
-
-        return {
-            "metadata": {
-                "page_size": page_size,
-                "offset_date": results[num_results - 1].updated,
-                "has_next": has_next,
-            },
-            "data": results,
-        }
-
 
 class TagViewSet(ModelViewSet):
-    queryset = Tag.objects.all()
+    queryset = Tag.objects.filter(deleted__isnull=True)
     serializer_class = TagSerializer
     permission_classes = [IsAdminUser]
+
+    def list(self, request: Request):
+        serializer = TagListSerializer(
+            _list_and_paging_metadata(
+                50, self.queryset.order_by("created"), lambda t: t.created
+            )
+        )
+        return Response(serializer.data)
+
+
+# TODO probably can be integrated into a mixin or something to allow this paging to be re-used in all views and with less code
+# perhaps based on this https://www.django-rest-framework.org/api-guide/pagination/#pagination
+def _list_and_paging_metadata(page_size: int, queryset, offset_attribute_selector):
+    total_results = queryset.all().count()
+    paged = queryset[:page_size]
+    results = list(paged)
+    num_results = len(results)
+    has_next = total_results > num_results
+
+    return {
+        "metadata": {
+            "page_size": page_size,
+            "offset_date": offset_attribute_selector(results[num_results - 1]),
+            "has_next": has_next,
+        },
+        "data": results,
+    }

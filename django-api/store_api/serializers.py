@@ -83,3 +83,8 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ["id", "name", "description"]
+
+
+class TagListSerializer(serializers.Serializer):
+    metadata = PagingMetadataSerializer(read_only=True)
+    data = TagSerializer(many=True)

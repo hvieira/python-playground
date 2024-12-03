@@ -5,7 +5,7 @@ from django.test import Client
 from oauth2_provider.models import Application
 
 from store_api.models import Tag, User
-from tests.conftest import AuthActions
+from tests.conftest import AuthActions, TagFactory
 
 CREATE_TAG_PAYLOAD = {
     "name": "beautiful",
@@ -72,7 +72,49 @@ class TestTagAPI:
 
         assert response.status_code == 403
 
-    # TODO staff user can list tags
+    def test_staff_users_can_list_tags(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        admin_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+        tag2 = tag_factory.create("tag2", "tag2 description")
+
+        access_token = auth_actions.generate_api_access_token(
+            admin_user, default_oauth_app
+        )
+
+        response = api_client.get(
+            "http://testserver/api/tags/",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "metadata": {
+                "page_size": 50,
+                "offset_date": tag2.created.isoformat().replace("+00:00", "Z"),
+                "has_next": False,
+            },
+            "data": [
+                {
+                    "id": str(tag1.id),
+                    "name": tag1.name,
+                    "description": tag1.description,
+                },
+                {
+                    "id": str(tag2.id),
+                    "name": tag2.name,
+                    "description": tag2.description,
+                },
+            ],
+        }
+
+    # TODO staff user can list tags with paging
 
     # TODO staff user can update tag names
 

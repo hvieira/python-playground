@@ -6,7 +6,7 @@ import pytest
 from django.test import Client
 from oauth2_provider.models import AccessToken, Application
 
-from store_api.models import Product, User
+from store_api.models import Product, Tag, User
 
 logger = logging.getLogger(__name__)
 
@@ -195,3 +195,13 @@ class AuthActions:
 @pytest.fixture()
 def auth_actions():
     return AuthActions()
+
+
+class TagFactory:
+    def create(self, name, description) -> Tag:
+        return Tag.objects.create(name=name, description=description)
+
+
+@pytest.fixture()
+def tag_factory():
+    return TagFactory()
