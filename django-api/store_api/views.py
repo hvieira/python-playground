@@ -210,6 +210,15 @@ class TagViewSet(ModelViewSet):
     serializer_class = TagSerializer
     permission_classes = [IsAdminUser]
 
+    def get_permissions(self):
+        match self.action:
+            case "list":
+                permission_classes = [permissions.IsAuthenticated]
+            case _:
+                permission_classes = [IsAdminUser]
+
+        return [permission() for permission in permission_classes]
+
     def list(self, request: Request):
         # TODO set these as "constants" somewhere
         default_page_size = 50

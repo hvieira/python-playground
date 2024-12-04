@@ -72,11 +72,11 @@ class TestTagAPI:
 
         assert response.status_code == 403
 
-    def test_staff_users_can_list_tags(
+    def test_authenticated_users_can_list_tags(
         self,
         api_client: Client,
         auth_actions: AuthActions,
-        admin_user: User,
+        default_user: User,
         default_oauth_app: Application,
         tag_factory: TagFactory,
     ):
@@ -84,7 +84,7 @@ class TestTagAPI:
         tag2 = tag_factory.create("tag2", "tag2 description")
 
         access_token = auth_actions.generate_api_access_token(
-            admin_user, default_oauth_app
+            default_user, default_oauth_app
         )
 
         response = api_client.get(
@@ -113,11 +113,11 @@ class TestTagAPI:
             ],
         }
 
-    def test_staff_users_can_list_tags_with_pagination(
+    def test_authenticated_users_can_list_tags_with_pagination(
         self,
         api_client: Client,
         auth_actions: AuthActions,
-        admin_user: User,
+        default_user: User,
         default_oauth_app: Application,
         tag_factory: TagFactory,
     ):
@@ -125,7 +125,7 @@ class TestTagAPI:
         tag2 = tag_factory.create("tag2", "tag2 description")
 
         access_token = auth_actions.generate_api_access_token(
-            admin_user, default_oauth_app
+            default_user, default_oauth_app
         )
 
         response = api_client.get(
