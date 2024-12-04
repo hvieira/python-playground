@@ -16,6 +16,7 @@ class BaseEntity(models.Model):
     deleted = models.DateTimeField(null=True)
 
 
+# TODO apply FSM to a state field (active, not active - which should replace the custom validation function below)
 class User(AbstractUser, BaseEntity):
 
     def save(self, **kwargs):
