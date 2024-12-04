@@ -376,3 +376,6 @@ class TestProductManagementAPI:
         assert user2_product.state == Product.STATE_AVAILABLE
         assert list(user2_product.stock.all()) == user2_product_original_stock
         assert user2_product.deleted is None
+
+    # TODO associate product to tags
+    # TODO dissociate product to tags

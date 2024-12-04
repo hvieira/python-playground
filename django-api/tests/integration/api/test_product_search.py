@@ -291,4 +291,6 @@ class TestProductSearchAPI:
             ],
         }
 
-    # TODO test paging going back. likely needs a "forward" offset and a "backwards" offset
+    # TODO search by a term will search title, description and tags (non deleted products and non deleted tags)
+
+    # TODO (optional) test paging going back. likely needs a "forward" offset and a "backwards" offset

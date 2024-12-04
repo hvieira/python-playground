@@ -177,8 +177,8 @@ class TestTagAPI:
             ],
         }
 
-    # TODO staff user can update tag names
+    # TODO staff user can update tag names & descriptions
 
     # TODO staff user can HEAD tags (check a tag exists)
 
-    # TODO staff user can delete tags (an unassociate all products using it)
+    # TODO staff user can delete tags (soft delete)
