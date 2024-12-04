@@ -89,7 +89,6 @@ class TestTagAPI:
 
         response = api_client.get(
             "http://testserver/api/tags/",
-            content_type="application/json",
             headers={"Authorization": f"Bearer {access_token.token}"},
         )
 
@@ -114,7 +113,69 @@ class TestTagAPI:
             ],
         }
 
-    # TODO staff user can list tags with paging
+    def test_staff_users_can_list_tags_with_pagination(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        admin_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+        tag2 = tag_factory.create("tag2", "tag2 description")
+
+        access_token = auth_actions.generate_api_access_token(
+            admin_user, default_oauth_app
+        )
+
+        response = api_client.get(
+            "http://testserver/api/tags/",
+            query_params={
+                "page_size": 1,
+            },
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "metadata": {
+                "page_size": 1,
+                "offset_date": tag1.created.isoformat().replace("+00:00", "Z"),
+                "has_next": True,
+            },
+            "data": [
+                {
+                    "id": str(tag1.id),
+                    "name": tag1.name,
+                    "description": tag1.description,
+                },
+            ],
+        }
+
+        response = api_client.get(
+            "http://testserver/api/tags/",
+            query_params={
+                "page_size": 20,
+                "offset": tag1.created.isoformat().replace("+00:00", "Z"),
+            },
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "metadata": {
+                "page_size": 20,
+                "offset_date": tag2.created.isoformat().replace("+00:00", "Z"),
+                "has_next": False,
+            },
+            "data": [
+                {
+                    "id": str(tag2.id),
+                    "name": tag2.name,
+                    "description": tag2.description,
+                },
+            ],
+        }
 
     # TODO staff user can update tag names
 

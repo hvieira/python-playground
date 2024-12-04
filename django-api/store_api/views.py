@@ -197,6 +197,7 @@ class ProductViewSet(GenericViewSet):
         default_page_size = 20
 
         page_size = int(request.query_params.get("page_size", default_page_size))
+        # TODO is there any way to leverage Django or DRF to handle these query param transformations
         offset = request.query_params.get("offset", None)
         if offset:
             offset = datetime.fromisoformat(offset.replace("Z", "+00:00"))
@@ -210,10 +211,20 @@ class TagViewSet(ModelViewSet):
     permission_classes = [IsAdminUser]
 
     def list(self, request: Request):
+        # TODO set these as "constants" somewhere
+        default_page_size = 50
+
+        page_size = int(request.query_params.get("page_size", default_page_size))
+        offset = request.query_params.get("offset", None)
+        queryset = self.queryset.order_by("created")
+
+        if offset:
+            print(f"has offset - {offset}")
+            offset = datetime.fromisoformat(offset.replace("Z", "+00:00"))
+            queryset = queryset.filter(created__gt=offset)
+
         serializer = TagListSerializer(
-            _list_and_paging_metadata(
-                50, self.queryset.order_by("created"), lambda t: t.created
-            )
+            _list_and_paging_metadata(page_size, queryset, lambda t: t.created)
         )
         return Response(serializer.data)
 
