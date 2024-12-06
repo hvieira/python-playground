@@ -212,7 +212,7 @@ class TagViewSet(ModelViewSet):
 
     def get_permissions(self):
         match self.action:
-            case "list":
+            case "list" | "retrieve":
                 permission_classes = [permissions.IsAuthenticated]
             case _:
                 permission_classes = [IsAdminUser]

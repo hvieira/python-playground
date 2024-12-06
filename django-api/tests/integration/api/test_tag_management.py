@@ -1,3 +1,4 @@
+import uuid
 from uuid import UUID
 
 import pytest
@@ -177,8 +178,40 @@ class TestTagAPI:
             ],
         }
 
-    # TODO staff user can update tag names & descriptions
+    def test_authenticated_users_can_check_if_a_tag_exists(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+        tag2 = tag_factory.create("tag2", "tag2 description")
 
-    # TODO staff user can HEAD tags (check a tag exists)
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.head(
+            f"http://testserver/api/tags/{str(tag1.id)}/",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+        assert response.status_code == 200
+
+        response = api_client.head(
+            f"http://testserver/api/tags/{str(tag2.id)}/",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+        assert response.status_code == 200
+
+        # check for a tag that does not exist
+        response = api_client.head(
+            f"http://testserver/api/tags/{str(uuid.uuid4())}/",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+        assert response.status_code == 404
+
+    # TODO staff user can update tag names & descriptions
 
     # TODO staff user can delete tags (soft delete)
