@@ -212,6 +212,63 @@ class TestTagAPI:
         )
         assert response.status_code == 404
 
-    # TODO staff user can update tag names & descriptions
+    def test_authenticated_staff_users_can_update_tags(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_staff_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+        tag_new_name = "new"
+        tag_new_description = "Depicts new items"
+
+        access_token = auth_actions.generate_api_access_token(
+            default_staff_user, default_oauth_app
+        )
+
+        response = api_client.put(
+            f"http://testserver/api/tags/{str(tag1.id)}/",
+            content_type="application/json",
+            data={"name": tag_new_name, "description": tag_new_description},
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "id": str(tag1.id),
+            "name": tag_new_name,
+            "description": tag_new_description,
+        }
+
+        tag1.refresh_from_db()
+        assert tag1.name == tag_new_name
+        assert tag1.description == tag_new_description
+
+    def test_non_staff_users_cannot_update_tags(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+        tag_new_name = "new"
+        tag_new_description = "Depicts new items"
+
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.put(
+            f"http://testserver/api/tags/{str(tag1.id)}/",
+            content_type="application/json",
+            data={"name": tag_new_name, "description": tag_new_description},
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 403
 
     # TODO staff user can delete tags (soft delete)
