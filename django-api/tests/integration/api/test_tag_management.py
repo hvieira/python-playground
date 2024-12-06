@@ -271,4 +271,50 @@ class TestTagAPI:
 
         assert response.status_code == 403
 
-    # TODO staff user can delete tags (soft delete)
+    def test_authenticated_staff_users_can_delete_tags(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_staff_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+
+        access_token = auth_actions.generate_api_access_token(
+            default_staff_user, default_oauth_app
+        )
+
+        response = api_client.delete(
+            f"http://testserver/api/tags/{str(tag1.id)}/",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 204
+        tag1.refresh_from_db()
+        assert tag1.name == "tag1"
+        assert tag1.description == "tag1 description"
+        assert tag1.updated is not None
+
+    def test_non_staff_users_cannot_delete_tags(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        tag1 = tag_factory.create("tag1", "tag1 description")
+
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.delete(
+            f"http://testserver/api/tags/{str(tag1.id)}/",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 403

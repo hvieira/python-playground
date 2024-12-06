@@ -33,6 +33,12 @@ class Tag(BaseEntity):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200, null=False)
 
+    # TODO move this into the base class
+    # TODO make this a state machine
+    def delete(self):
+        self.deleted = timezone.now()
+        self.save()
+
 
 class Product(BaseEntity):
     class Meta:
