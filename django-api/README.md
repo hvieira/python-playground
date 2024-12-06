@@ -33,16 +33,17 @@ Features:
 
 Technical features:
 - [x] backing postgres DB
-- all entities should have UUID for ids
-- expired user API tokens should be removed
+- [x] all entities should have UUID for ids
+- expired user API tokens should be removed (check if lib does it)
 - [x] static analysis of code - isort, black, ...
+- document APIs and have "contract" testing
 - separate test runs for unit and integration/api tests. The latter are slower and should be run separately
 - all dates/timestamps should be in UTC timezone
 - all DB entities should have `created`, `updated`, `deleted` timestamps
 - DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
 - products, bags and orders should be implemented as state machines with appropriate states
     - https://pypi.org/project/python-statemachine/ seems like a good candidate to explore for this (it has django integration) and diagrams can be generated
-- authentication should be based on "blackbox" tokens and acquired via oauth2 password flow
+- [x] authentication should be based on "blackbox" tokens and acquired via oauth2 password flow
 - tags can be searched and managed on their own API domain - `/api/tags` - but also listed, associated and dissociated as a nested representation of products - `/api/product/<id>/tags`
 
 Optional features:
