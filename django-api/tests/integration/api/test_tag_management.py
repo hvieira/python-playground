@@ -318,3 +318,47 @@ class TestTagAPI:
         )
 
         assert response.status_code == 403
+
+    def test_users_can_search_for_tags_using_a_term(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        _ = tag_factory.create("beauty", "Beauty products")
+        tag2 = tag_factory.create("fashion", "Fashion products")
+        _ = tag_factory.create("food", "Food items")
+        tag4 = tag_factory.create("fabulous", "Fabulous")
+
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.get(
+            "http://testserver/api/tags/",
+            query_params={"search_term": "fa"},
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "metadata": {
+                "page_size": 50,
+                "offset_date": tag4.created.isoformat().replace("+00:00", "Z"),
+                "has_next": False,
+            },
+            "data": [
+                {
+                    "id": str(tag2.id),
+                    "name": tag2.name,
+                    "description": tag2.description,
+                },
+                {
+                    "id": str(tag4.id),
+                    "name": tag4.name,
+                    "description": tag4.description,
+                },
+            ],
+        }

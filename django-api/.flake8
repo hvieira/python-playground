@@ -1,5 +1,0 @@
-[flake8]
-ignore = E251, E501, W505
-; line length in line with black's default
-max-line-length = 88
-max-doc-length = 88

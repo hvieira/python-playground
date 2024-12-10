@@ -223,12 +223,16 @@ class TagViewSet(ModelViewSet):
         # TODO set these as "constants" somewhere
         default_page_size = 50
 
-        page_size = int(request.query_params.get("page_size", default_page_size))
-        offset = request.query_params.get("offset", None)
         queryset = self.queryset.order_by("created")
 
+        page_size = int(request.query_params.get("page_size", default_page_size))
+        offset = request.query_params.get("offset", None)
+        search_term = request.query_params.get("search_term", None)
+
+        if search_term:
+            queryset = queryset.filter(name__contains=search_term)
+
         if offset:
-            print(f"has offset - {offset}")
             offset = datetime.fromisoformat(offset.replace("Z", "+00:00"))
             queryset = queryset.filter(created__gt=offset)
 
