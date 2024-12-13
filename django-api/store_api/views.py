@@ -115,14 +115,13 @@ class ProductViewSet(GenericViewSet):
     def create(self, request: Request):
         serializer = CreateProductRequestSerializer(data=request.data)
         if serializer.is_valid():
-            product = Product(
-                title=serializer.validated_data["title"],
-                description=serializer.validated_data["description"],
-                price=serializer.validated_data["price"],
-                owner_user=request.user,
-            )
-
             with transaction.atomic():
+                product = Product(
+                    title=serializer.validated_data["title"],
+                    description=serializer.validated_data["description"],
+                    price=serializer.validated_data["price"],
+                    owner_user=request.user,
+                )
                 product.save()
                 product.stock.create(
                     available=serializer.validated_data["available_stock"],
@@ -130,9 +129,9 @@ class ProductViewSet(GenericViewSet):
                     sold=0,
                 )
 
-                for tag_id in serializer.validated_data["tags"]:
-                    tag = Tag.objects.get(id=tag_id)
-                    product.tags.add(tag)
+                product.tags.set(
+                    Tag.objects.filter(id__in=serializer.validated_data["tags"])
+                )
 
             response_serializer = self.serializer_class(product)
 
@@ -163,9 +162,9 @@ class ProductViewSet(GenericViewSet):
                 available=serializer.validated_data["available_stock"]
             )
 
-            for tag_id in serializer.validated_data["tags"]:
-                tag = Tag.objects.get(id=tag_id)
-                product.tags.add(tag)
+            product.tags.set(
+                Tag.objects.filter(id__in=serializer.validated_data["tags"])
+            )
 
         response_serializer = self.serializer_class(product)
         return Response(response_serializer.data)
