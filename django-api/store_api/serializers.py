@@ -30,6 +30,7 @@ class UpdateProductRequestSerializer(serializers.Serializer):
     description = serializers.CharField(max_length=1000)
     price = serializers.IntegerField(min_value=1)
     available_stock = serializers.IntegerField(min_value=0)
+    tags = UUIDListSerializer(required=False, default=[])
 
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):

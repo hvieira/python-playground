@@ -130,10 +130,9 @@ class ProductViewSet(GenericViewSet):
                     sold=0,
                 )
 
-                if serializer.validated_data["tags"]:
-                    for tag_id in serializer.validated_data["tags"]:
-                        tag = Tag.objects.get(id=tag_id)
-                        product.tags.add(tag)
+                for tag_id in serializer.validated_data["tags"]:
+                    tag = Tag.objects.get(id=tag_id)
+                    product.tags.add(tag)
 
             response_serializer = self.serializer_class(product)
 
@@ -163,7 +162,10 @@ class ProductViewSet(GenericViewSet):
             product.stock.filter(variant="default").update(
                 available=serializer.validated_data["available_stock"]
             )
-            product.save()
+
+            for tag_id in serializer.validated_data["tags"]:
+                tag = Tag.objects.get(id=tag_id)
+                product.tags.add(tag)
 
         response_serializer = self.serializer_class(product)
         return Response(response_serializer.data)
