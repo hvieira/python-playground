@@ -122,12 +122,18 @@ class ProductViewSet(GenericViewSet):
                 owner_user=request.user,
             )
 
-            product.save()
-            product.stock.create(
-                available=serializer.validated_data["available_stock"],
-                reserved=0,
-                sold=0,
-            )
+            with transaction.atomic():
+                product.save()
+                product.stock.create(
+                    available=serializer.validated_data["available_stock"],
+                    reserved=0,
+                    sold=0,
+                )
+
+                if serializer.validated_data["tags"]:
+                    for tag_id in serializer.validated_data["tags"]:
+                        tag = Tag.objects.get(id=tag_id)
+                        product.tags.add(tag)
 
             response_serializer = self.serializer_class(product)
 

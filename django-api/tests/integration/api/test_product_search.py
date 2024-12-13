@@ -76,6 +76,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
                 {
                     "id": str(product_2.id),
@@ -90,6 +91,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
                 {
                     "id": str(product_1.id),
@@ -104,6 +106,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
             ],
         }
@@ -166,6 +169,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
             ],
         }
@@ -238,6 +242,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
                 {
                     "id": str(product_2.id),
@@ -252,6 +257,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
             ],
         }
@@ -287,6 +293,7 @@ class TestProductSearchAPI:
                             "sold": 0,
                         }
                     },
+                    "tags": [],
                 },
             ],
         }

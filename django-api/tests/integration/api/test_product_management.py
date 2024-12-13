@@ -7,7 +7,7 @@ from django.test import Client
 from oauth2_provider.models import Application
 
 from store_api.models import Product, User
-from tests.conftest import AuthActions, ProductFactory, UserFactory
+from tests.conftest import AuthActions, ProductFactory, TagFactory, UserFactory
 
 
 @pytest.mark.django_db()
@@ -59,6 +59,7 @@ class TestProductManagementAPI:
                     "sold": 0,
                 }
             },
+            "tags": [],
         }
 
         product_in_db = Product.objects.get(id=assigned_product_id)
@@ -221,6 +222,7 @@ class TestProductManagementAPI:
                     "sold": 71,
                 }
             },
+            "tags": [],
         }
 
         product_in_db = Product.objects.get(id=product.id)
@@ -377,5 +379,75 @@ class TestProductManagementAPI:
         assert list(user2_product.stock.all()) == user2_product_original_stock
         assert user2_product.deleted is None
 
-    # TODO associate product to tags
+    def test_create_product_with_tags(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+        tag_factory: TagFactory,
+    ):
+        product_title = "Amazing Product!"
+        product_description = f"""This can only be found in {default_user.username} store.
+        An amazing item that is now available to all!"""
+        product_price = 19900
+        product_stock = 3
+
+        unique_tag = tag_factory.create("unique", "Unique products")
+        glamourous_tag = tag_factory.create("glamourous", "Glamour related products")
+
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.post(
+            "http://testserver/api/products/",
+            content_type="application/json",
+            data={
+                "title": product_title,
+                "description": product_description,
+                "price": product_price,
+                "available_stock": product_stock,
+                "tags": [
+                    str(unique_tag.id),
+                    str(glamourous_tag.id),
+                ],
+            },
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 201
+
+        assert response.json()["id"]
+        assigned_product_id = response.json()["id"]
+        assert response.json() == {
+            "id": assigned_product_id,
+            "owner_user_id": str(default_user.id),
+            "title": product_title,
+            "description": product_description,
+            "price": product_price,
+            "stock": {
+                "default": {
+                    "available": product_stock,
+                    "reserved": 0,
+                    "sold": 0,
+                }
+            },
+            "tags": [
+                {
+                    "id": str(unique_tag.id),
+                    "name": unique_tag.name,
+                    "description": unique_tag.description,
+                },
+                {
+                    "id": str(glamourous_tag.id),
+                    "name": glamourous_tag.name,
+                    "description": glamourous_tag.description,
+                },
+            ],
+        }
+
+        created_product_from_db = Product.objects.get(id=assigned_product_id)
+        assert list(created_product_from_db.tags.all()) == [unique_tag, glamourous_tag]
+
     # TODO dissociate product to tags

@@ -8,6 +8,10 @@ username_length = 50
 password_length = 50
 
 
+class UUIDListSerializer(serializers.ListSerializer):
+    child = serializers.UUIDField()
+
+
 class CreateUserRequestSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=name_length)
     last_name = serializers.CharField(max_length=name_length)
@@ -19,13 +23,6 @@ class CreateUserRequestSerializer(serializers.Serializer):
 class UpdateUserPasswordRequestSerializer(serializers.Serializer):
     old_password = serializers.CharField(max_length=password_length)
     new_password = serializers.CharField(max_length=password_length)
-
-
-class CreateProductRequestSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=1000)
-    price = serializers.IntegerField(min_value=1)
-    available_stock = serializers.IntegerField(min_value=0)
 
 
 class UpdateProductRequestSerializer(serializers.Serializer):
@@ -60,11 +57,26 @@ class ProductStockSerializer(serializers.RelatedField):
         }
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "name", "description"]
+
+
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ["id", "title", "description", "price", "stock", "owner_user_id"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "price",
+            "stock",
+            "owner_user_id",
+            "tags",
+        ]
 
+    tags = TagSerializer(many=True, read_only=True)
     stock = ProductStockSerializer(read_only=True)
 
 
@@ -79,12 +91,14 @@ class ProductListSerializer(serializers.Serializer):
     data = ProductSerializer(many=True)
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ["id", "name", "description"]
-
-
 class TagListSerializer(serializers.Serializer):
     metadata = PagingMetadataSerializer(read_only=True)
     data = TagSerializer(many=True)
+
+
+class CreateProductRequestSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=1000)
+    price = serializers.IntegerField(min_value=1)
+    available_stock = serializers.IntegerField(min_value=0)
+    tags = UUIDListSerializer(required=False, default=[])
