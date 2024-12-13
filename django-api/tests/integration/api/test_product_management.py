@@ -547,7 +547,6 @@ class TestProductManagementAPI:
         ]
         assert list(product_in_db.tags.all()) == [unique_tag, glamourous_tag]
 
-    # TODO dissociate product to tags
     def test_update_product_replace_tags(
         self,
         api_client: Client,
