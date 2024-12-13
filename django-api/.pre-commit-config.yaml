@@ -14,4 +14,4 @@ repos:
         exclude: ^store_api/migrations|django_api/settings
         args: 
           - "--max-line-length=88"
-          - "--ignore=E251,E501,W505"
+          - "--ignore=E251,E501,W503,W505"

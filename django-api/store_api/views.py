@@ -3,6 +3,7 @@ from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
+from django.db.models import Q
 from oauth2_provider.contrib.rest_framework import permissions as token_permissions
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -190,6 +191,16 @@ class ProductViewSet(GenericViewSet):
     def list(self, request: Request):
         page_size, offset = self._paging_params_from_request(request)
         results_queryset = self.queryset.order_by("-updated").all()
+        search_term = request.query_params.get("search_term", None)
+
+        if search_term:
+            # note: without the distinct, the query will result in duplicated records
+            # https://stackoverflow.com/questions/18071572/django-duplicates-when-filtering-on-many-to-many-field
+            results_queryset = results_queryset.filter(
+                Q(title__contains=search_term)
+                | Q(description__contains=search_term)
+                | Q(tags__name__contains=search_term)
+            ).distinct()
 
         if offset:
             results_queryset = results_queryset.filter(updated__lt=offset)

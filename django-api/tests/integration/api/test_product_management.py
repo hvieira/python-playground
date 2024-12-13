@@ -526,7 +526,6 @@ class TestProductManagementAPI:
             ],
         }
 
-        # check
         product_in_db = Product.objects.get(id=product.id)
         assert product_in_db == Product(
             id=product.id,
