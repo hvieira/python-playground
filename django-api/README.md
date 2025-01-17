@@ -53,3 +53,16 @@ Optional features:
 - the change in the DB caused by placing an order should emit an event to a message/event stream (e.g. kafka)
 - place product information (name, description, stock and tags) in an elasticsearch index and use it to list & search
 - social features such as "follow user"
+
+
+## Running
+
+### Environment
+start necessary dependencies (including for tests) with:
+
+`docker-compose up -d --remove-orphans`
+
+### Tests
+Run tests with:
+
+`pytest [-vv]`

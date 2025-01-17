@@ -11,7 +11,7 @@ from store_api.models import Product, Tag, User
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture
+@pytest.fixture()
 def api_client() -> Client:
     """
     Fixture to provide an API client using JSON as default content-type
@@ -130,38 +130,44 @@ def default_oauth_app_client_secret() -> str:
     return "SuP3rSeKr3tz"
 
 
-@pytest.fixture
-def custom_admin_user(default_admin_password: str) -> User:
-    t1 = perf_counter()
-    val = User.objects.create_user(
-        email="admin@testserver.com",
-        username="root@testserver",
-        password=default_admin_password,
-        is_superuser=True,
-    )
-    logger.info(f"admin_user took {perf_counter() - t1}")
-    return val
+@pytest.fixture(scope="session")
+def custom_admin_user(
+    django_db_setup, django_db_blocker, default_admin_password: str
+) -> User:
+    with django_db_blocker.unblock():
+        t1 = perf_counter()
+        val = User.objects.create_user(
+            email="admin@testserver.com",
+            username="root@testserver",
+            password=default_admin_password,
+            is_superuser=True,
+        )
+        logger.info(f"admin_user took {perf_counter() - t1}")
+        return val
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def default_oauth_app(
+    django_db_setup,
+    django_db_blocker,
     default_oauth_app_client_id: str,
     default_oauth_app_client_secret: str,
-    admin_user: User,
+    custom_admin_user: User,
 ) -> Application:
-    t1 = perf_counter()
-    val = Application.objects.create(
-        client_id=default_oauth_app_client_id,
-        name=default_oauth_app_client_id,
-        user=admin_user,
-        client_type=Application.CLIENT_PUBLIC,
-        authorization_grant_type=Application.GRANT_PASSWORD,
-        client_secret=default_oauth_app_client_secret,
-        redirect_uris=["http://testserver/nonexist/callback"],
-        post_logout_redirect_uris=["http://testserver/nonexist/logout"],
-    )
-    logger.info(f"default_oauth_app took {perf_counter() - t1}")
-    return val
+    with django_db_blocker.unblock():
+        t1 = perf_counter()
+        val = Application.objects.create(
+            client_id=default_oauth_app_client_id,
+            name=default_oauth_app_client_id,
+            user=custom_admin_user,
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_PASSWORD,
+            client_secret=default_oauth_app_client_secret,
+            redirect_uris=["http://testserver/nonexist/callback"],
+            post_logout_redirect_uris=["http://testserver/nonexist/logout"],
+        )
+        logger.info(f"default_oauth_app took {perf_counter() - t1}")
+        return val
 
 
 class AuthActions:

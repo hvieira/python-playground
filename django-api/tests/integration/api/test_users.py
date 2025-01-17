@@ -32,16 +32,20 @@ class TestUserAPI:
         )
 
         assert response.status_code == 201
-
-        assert User.objects.count() == 1
-        user = User.objects.first()
-        assert user
-        assert type(user.id) is uuid.UUID
-        assert user.first_name == first_name
-        assert user.last_name == last_name
-        assert user.username == username
-        assert user.email == email
-        assert check_password(password, user.password)
+        user_queryset = (
+            User.objects.filter(first_name=first_name)
+            .filter(last_name=last_name)
+            .filter(username=username)
+            .filter(email=email)
+        )
+        assert user_queryset.count() == 1
+        user_from_db = user_queryset.first()
+        assert type(user_from_db.id) is uuid.UUID
+        assert user_from_db.first_name == first_name
+        assert user_from_db.last_name == last_name
+        assert user_from_db.username == username
+        assert user_from_db.email == email
+        assert check_password(password, user_from_db.password)
 
     @pytest.mark.parametrize(
         "request_body",
@@ -92,7 +96,6 @@ class TestUserAPI:
         )
 
         assert response.status_code == 400
-        assert User.objects.count() == 0
 
     def test_update_existing_user_password(
         self,

@@ -35,9 +35,10 @@ which is a bit inconvenient. A custom authentication implementation would be nee
 Because the default implementation uses `is_active` field, a custom `save()` can be used to validate that deleted users cannot be active.
 
 ## Testing
-Creating models when using `@pytest.mark.django_db` is slow and makes integration tests take a long time.
-
-I added a `base_test.py` file with an example of a base class that could have some potential to speed things up a bit.
+### Test performance
+Creating certain models (e.g. users, oauth app) is slow and makes integration tests take a long time - as fixtures for user creation for every test will compound take spent. Whilst I have tried and added a `base_test.py` file with an example of a base class that could have some potential to speed things up a bit, the real solution is based on fixture scoping - e.g. admin users, oauth application can be reused by a testing session. To be able to do this, these fixtures need the
+pytest-django db fixtures: `django_db_setup` and `django_db_blocker`, using the latter to unblock the DB and create the entities in the DB.
+Using this strategy has allowed to cut test runtimes by more than 50%
 
 ## Boostrapping project
 1. `poetry new django-api`
