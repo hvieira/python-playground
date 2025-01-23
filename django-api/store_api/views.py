@@ -126,8 +126,6 @@ class ProductViewSet(GenericViewSet):
                 product.save()
                 product.stock.create(
                     available=serializer.validated_data["available_stock"],
-                    reserved=0,
-                    sold=0,
                 )
 
                 product.tags.set(

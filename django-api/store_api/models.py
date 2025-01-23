@@ -89,14 +89,6 @@ class ProductStock(models.Model):
                 condition=models.Q(available__gte=0),
                 name="%(app_label)s_%(class)s_available_gte_zero",
             ),
-            models.CheckConstraint(
-                condition=models.Q(reserved__gte=0),
-                name="%(app_label)s_%(class)s_reserved_gte_zero",
-            ),
-            models.CheckConstraint(
-                condition=models.Q(sold__gte=0),
-                name="%(app_label)s_%(class)s_sold_gte_zero",
-            ),
         ]
 
     VARIANT_DEFAULT = "default"
@@ -107,5 +99,3 @@ class ProductStock(models.Model):
         Product, on_delete=models.DO_NOTHING, related_name="stock"
     )
     available = models.IntegerField(null=False)
-    reserved = models.IntegerField(null=False)
-    sold = models.IntegerField(null=False)

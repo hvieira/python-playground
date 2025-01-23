@@ -51,8 +51,6 @@ class ProductStockSerializer(serializers.RelatedField):
         return {
             s.variant: {
                 "available": s.available,
-                "reserved": s.reserved,
-                "sold": s.sold,
             }
             for s in value.all()
         }

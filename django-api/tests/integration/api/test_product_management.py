@@ -55,8 +55,6 @@ class TestProductManagementAPI:
             "stock": {
                 "default": {
                     "available": product_stock,
-                    "reserved": 0,
-                    "sold": 0,
                 }
             },
             "tags": [],
@@ -70,14 +68,10 @@ class TestProductManagementAPI:
             price=product_price,
             owner_user=default_user,
         )
-        assert list(
-            product_in_db.stock.all().values("variant", "available", "reserved", "sold")
-        ) == [
+        assert list(product_in_db.stock.all().values("variant", "available")) == [
             {
                 "variant": "default",
                 "available": product_stock,
-                "reserved": 0,
-                "sold": 0,
             }
         ]
 
@@ -187,8 +181,6 @@ class TestProductManagementAPI:
             "old_product_description",
             1003,
             3,
-            stock_reserved=1,
-            stock_sold=71,
         )
 
         access_token = auth_actions.generate_api_access_token(
@@ -218,8 +210,6 @@ class TestProductManagementAPI:
             "stock": {
                 "default": {
                     "available": new_product_stock,
-                    "reserved": 1,
-                    "sold": 71,
                 }
             },
             "tags": [],
@@ -233,14 +223,10 @@ class TestProductManagementAPI:
             price=new_product_price,
             owner_user=default_user,
         )
-        assert list(
-            product_in_db.stock.all().values("variant", "available", "reserved", "sold")
-        ) == [
+        assert list(product_in_db.stock.all().values("variant", "available")) == [
             {
                 "variant": "default",
                 "available": new_product_stock,
-                "reserved": 1,
-                "sold": 71,
             }
         ]
 
@@ -429,8 +415,6 @@ class TestProductManagementAPI:
             "stock": {
                 "default": {
                     "available": product_stock,
-                    "reserved": 0,
-                    "sold": 0,
                 }
             },
             "tags": [
@@ -471,8 +455,6 @@ class TestProductManagementAPI:
             "old_product_description",
             1003,
             3,
-            stock_reserved=1,
-            stock_sold=71,
         )
 
         unique_tag = tag_factory.create("unique", "Unique products")
@@ -508,8 +490,6 @@ class TestProductManagementAPI:
             "stock": {
                 "default": {
                     "available": new_product_stock,
-                    "reserved": 1,
-                    "sold": 71,
                 }
             },
             "tags": [
@@ -534,14 +514,10 @@ class TestProductManagementAPI:
             price=new_product_price,
             owner_user=default_user,
         )
-        assert list(
-            product_in_db.stock.all().values("variant", "available", "reserved", "sold")
-        ) == [
+        assert list(product_in_db.stock.all().values("variant", "available")) == [
             {
                 "variant": "default",
                 "available": new_product_stock,
-                "reserved": 1,
-                "sold": 71,
             }
         ]
         assert list(product_in_db.tags.all()) == [unique_tag, glamourous_tag]
@@ -561,7 +537,6 @@ class TestProductManagementAPI:
             "product_description",
             1003,
             3,
-            stock_reserved=1,
         )
 
         unique_tag = tag_factory.create("unique", "Unique products")
@@ -598,8 +573,6 @@ class TestProductManagementAPI:
             "stock": {
                 "default": {
                     "available": 1,
-                    "reserved": 1,
-                    "sold": 0,
                 }
             },
             "tags": [
@@ -613,14 +586,10 @@ class TestProductManagementAPI:
 
         product_in_db = Product.objects.get(id=product.id)
         assert product_in_db == product
-        assert list(
-            product_in_db.stock.all().values("variant", "available", "reserved", "sold")
-        ) == [
+        assert list(product_in_db.stock.all().values("variant", "available")) == [
             {
                 "variant": "default",
                 "available": 1,
-                "reserved": 1,
-                "sold": 0,
             }
         ]
         assert list(product_in_db.tags.all()) == [glamourous_tag]

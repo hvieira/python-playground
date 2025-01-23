@@ -72,8 +72,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 7,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -87,8 +85,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 3,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -102,8 +98,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 1,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -165,8 +159,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 1,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -238,8 +230,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 7,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -253,8 +243,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 3,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -289,8 +277,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 1,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [],
@@ -298,7 +284,7 @@ class TestProductSearchAPI:
             ],
         }
 
-    def test_get_products_by_searcg_term_returns_relevant_results_using_title_description_and_tags(
+    def test_get_products_by_search_term_returns_relevant_results_using_title_description_and_tags(
         self,
         api_client: Client,
         auth_actions: AuthActions,
@@ -372,8 +358,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 12,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     # TODO use serializers to transform the py objects to dicts to simplify and reduce code
@@ -416,8 +400,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 1,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [
@@ -442,8 +424,6 @@ class TestProductSearchAPI:
                     "stock": {
                         "default": {
                             "available": 3,
-                            "reserved": 0,
-                            "sold": 0,
                         }
                     },
                     "tags": [

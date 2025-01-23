@@ -52,8 +52,6 @@ class ProductFactory:
         price: str,
         state: str = Product.STATE_AVAILABLE,
         stock_available=1,
-        stock_reserved=0,
-        stock_sold=0,
         deleted: None | datetime = None,
     ) -> Product:
 
@@ -67,9 +65,7 @@ class ProductFactory:
         )
         product.save()
 
-        product.stock.create(
-            available=stock_available, reserved=stock_reserved, sold=stock_sold
-        )
+        product.stock.create(available=stock_available)
 
         return product
 
@@ -84,6 +80,7 @@ def user_factory() -> UserFactory:
     return UserFactory()
 
 
+# TODO check if this can be session scoped
 @pytest.fixture
 def default_user(user_factory: UserFactory, default_password: str) -> User:
     return user_factory.create(
