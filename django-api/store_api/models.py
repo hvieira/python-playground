@@ -40,6 +40,17 @@ class Tag(BaseEntity):
         self.save()
 
 
+class Order(BaseEntity):
+
+    class States(models.TextChoices):
+        PENDING = "PENDING", ("Pending")
+        SHIPPED = "SHIPPED", ("Shipped")
+        CANCELLED = "CANCELLED", ("Cancelled")
+
+    state = FSMField(null=False, choices=States, default=States.PENDING)
+    customer = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+
 class Product(BaseEntity):
     class Meta:
         constraints = [
@@ -67,6 +78,8 @@ class Product(BaseEntity):
     owner_user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     tags = models.ManyToManyField(Tag)
 
+    order = models.ForeignKey(Order, null=True, default=None, on_delete=models.CASCADE)
+
     @transition(field=state, source="+", target=STATE_DELETED)
     def delete(self):
         """
@@ -76,6 +89,8 @@ class Product(BaseEntity):
         # if an undelete operation is to be supported, it needs to restore the default variant in stock
         self.stock.all().delete()
         self.deleted = timezone.now()
+
+        # TODO what would happen to a pending order that has a product that is suddenly deleted
 
 
 class ProductStock(models.Model):
