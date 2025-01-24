@@ -3,7 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-from django_fsm import FSMField, transition
+from django_fsm import RETURN_VALUE, FSMField, transition
 
 
 class BaseEntity(models.Model):
@@ -80,6 +80,9 @@ class Product(BaseEntity):
 
     order = models.ForeignKey(Order, null=True, default=None, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"<Product id={self.id} title={self.title} state={self.state}>"
+
     @transition(field=state, source="+", target=STATE_DELETED)
     def delete(self):
         """
@@ -91,6 +94,29 @@ class Product(BaseEntity):
         self.deleted = timezone.now()
 
         # TODO what would happen to a pending order that has a product that is suddenly deleted
+
+    @transition(
+        field=state,
+        source=STATE_AVAILABLE,
+        target=RETURN_VALUE(STATE_SOLD_OUT, STATE_AVAILABLE),
+    )
+    def reserve_for_order(self, order: Order, variant: str, quantity: int):
+        """
+        Reserves stock for an order and updates the state
+        """
+        # TODO if there's a constraint, maybe no need for this check
+        stock = self.stock.select_for_update().filter(variant=variant).get()
+        if stock.available >= quantity:
+            self.order = order
+            stock.available = stock.available - quantity
+            # TODO this might not be the best place to do this
+            stock.save()
+
+            return (
+                Product.STATE_SOLD_OUT
+                if stock.available == 0
+                else Product.STATE_AVAILABLE
+            )
 
 
 class ProductStock(models.Model):
@@ -114,3 +140,6 @@ class ProductStock(models.Model):
         Product, on_delete=models.DO_NOTHING, related_name="stock"
     )
     available = models.IntegerField(null=False)
+
+    def __str__(self):
+        return f"<ProductStock id={self.id} variant={self.variant} available={self.available}>"

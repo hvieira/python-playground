@@ -12,8 +12,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from store_api.models import Product, Tag, User
+from store_api.models import Order, Product, Tag, User
 from store_api.serializers import (
+    CreateOrderRequestSerializer,
+    CreateOrderResponseSerializer,
     CreateProductRequestSerializer,
     CreateUserRequestSerializer,
     ProductListSerializer,
@@ -256,6 +258,58 @@ class TagViewSet(ModelViewSet):
             _list_and_paging_metadata(page_size, queryset, lambda t: t.created)
         )
         return Response(serializer.data)
+
+
+class OrderViewSet(GenericViewSet):
+    lookup_field = "id"
+    lookup_value_converter = "uuid"
+
+    queryset = Order.objects.all().filter(deleted__isnull=True)
+    required_alternate_scopes = {
+        "GET": [["read"]],
+        "POST": [["write"]],
+    }
+
+    def get_permissions(self):
+        match self.action:
+            case _:
+                permission_classes = [token_permissions.TokenMatchesOASRequirements]
+
+        return [permission() for permission in permission_classes]
+
+    def create(self, request: Request):
+        serializer = CreateOrderRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            products_by_id = {p["id"]: p for p in serializer.validated_data["products"]}
+            product_ids = products_by_id.keys()
+
+            queryset = (
+                Product.objects.select_for_update()
+                .prefetch_related("stock")
+                .filter(id__in=product_ids)
+            )
+
+            with transaction.atomic():
+                order = Order.objects.create(customer=request.user)
+                processed_products = []
+                for product in queryset:
+                    product_request = products_by_id[product.id]
+                    wanted_variant = product_request["variant"]
+                    wanted_stock_amount = product_request["quantity"]
+
+                    product.reserve_for_order(
+                        order, wanted_variant, wanted_stock_amount
+                    )
+                    processed_products.append(product)
+
+                Product.objects.bulk_update(
+                    processed_products, fields=["order", "state"]
+                )
+
+            response_serializer = CreateOrderResponseSerializer({"id": order.id})
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 # TODO probably can be integrated into a mixin or something to allow this paging to be re-used in all views and with less code

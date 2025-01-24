@@ -101,3 +101,17 @@ class CreateProductRequestSerializer(serializers.Serializer):
     price = serializers.IntegerField(min_value=1)
     available_stock = serializers.IntegerField(min_value=0)
     tags = UUIDListSerializer(required=False, default=[])
+
+
+class ProductInOrderSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    variant = serializers.CharField()
+    quantity = serializers.IntegerField(min_value=0)
+
+
+class CreateOrderRequestSerializer(serializers.Serializer):
+    products = ProductInOrderSerializer(many=True)
+
+
+class CreateOrderResponseSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
