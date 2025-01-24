@@ -285,8 +285,8 @@ class OrderViewSet(GenericViewSet):
 
             queryset = (
                 Product.objects.select_for_update()
-                .prefetch_related("stock")
-                .filter(id__in=product_ids)
+                # a separate query is made to load all the stocks for the products
+                .prefetch_related("stock").filter(id__in=product_ids)
             )
 
             with transaction.atomic():

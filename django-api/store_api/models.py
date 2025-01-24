@@ -104,8 +104,14 @@ class Product(BaseEntity):
         """
         Reserves stock for an order and updates the state
         """
+        # TODO an alternative to change this so that a single query is made to
+        # update the stocks is to use bulk update in somewhere called by the view.
+        # but it'll make it harder to update the status based on sold out.
+        # Maybe instead of SOLD_OUT state, this is a presentation issue
+        # a product might be available but if available stock is zero (for all variants)
+        # then a client would need to mark it as sold out
+        stock = [s for s in self.stock.all() if s.variant == variant][0]
         # TODO if there's a constraint, maybe no need for this check
-        stock = self.stock.select_for_update().filter(variant=variant).get()
         if stock.available >= quantity:
             self.order = order
             stock.available = stock.available - quantity
