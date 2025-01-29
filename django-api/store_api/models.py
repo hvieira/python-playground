@@ -51,6 +51,9 @@ class Product(BaseEntity):
 
     STATE_DRAFT = "DRAFT"
     STATE_AVAILABLE = "AVAILABLE"
+    # TODO remove the SOLD_OUT - as each stock variant can be sold out but not others.
+    # it is complex and costly to know when a product is fully sold out
+    # a client should simply display a specific variant sold out/unavaible when available stock is zero
     STATE_SOLD_OUT = "SOLD_OUT"
     STATE_DELETED = "DELETED"
     STATES = {
