@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import reduce
 from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
@@ -12,7 +13,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from store_api.models import Order, Product, Tag, User
+from store_api.models import Order, OrderLineItem, Product, ProductStock, Tag, User
 from store_api.serializers import (
     CreateOrderRequestSerializer,
     CreateOrderResponseSerializer,
@@ -280,31 +281,45 @@ class OrderViewSet(GenericViewSet):
     def create(self, request: Request):
         serializer = CreateOrderRequestSerializer(data=request.data)
         if serializer.is_valid():
-            products_by_id = {p["id"]: p for p in serializer.validated_data["products"]}
-            product_ids = products_by_id.keys()
+            requested_products_by_id = {
+                p["id"]: p for p in serializer.validated_data["products"]
+            }
 
-            queryset = (
-                Product.objects.select_for_update()
-                # a separate query is made to load all the stocks for the products
-                .prefetch_related("stock").filter(id__in=product_ids)
+            stock_queryset = ProductStock.objects.select_for_update().prefetch_related(
+                "product"
             )
+            lookups = [
+                Q(product_id=requested_product["id"])
+                & Q(variant=requested_product["variant"])
+                for requested_product in serializer.validated_data["products"]
+            ]
+            combined_lookup = reduce(lambda lu, acc: acc | lu, lookups)
 
             with transaction.atomic():
+                processed_order_line_items = []
                 order = Order.objects.create(customer=request.user)
-                processed_products = []
-                for product in queryset:
-                    product_request = products_by_id[product.id]
-                    wanted_variant = product_request["variant"]
-                    wanted_stock_amount = product_request["quantity"]
+                # a separate query is made to load all the products for the products
+                requested_products_stock = stock_queryset.filter(combined_lookup)
 
-                    product.reserve_for_order(
-                        order, wanted_variant, wanted_stock_amount
+                for product_stock in requested_products_stock:
+                    requested_quantity = requested_products_by_id[
+                        product_stock.product.id
+                    ]["quantity"]
+
+                    product_stock.available -= requested_quantity
+                    processed_order_line_items.append(
+                        OrderLineItem(
+                            order=order,
+                            product=product_stock.product,
+                            variant=product_stock.variant,
+                            quantity=requested_quantity,
+                        )
                     )
-                    processed_products.append(product)
 
-                Product.objects.bulk_update(
-                    processed_products, fields=["order", "state"]
+                ProductStock.objects.bulk_update(
+                    requested_products_stock, fields=["available"]
                 )
+                OrderLineItem.objects.bulk_create(processed_order_line_items)
 
             response_serializer = CreateOrderResponseSerializer({"id": order.id})
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)

@@ -4,7 +4,7 @@ import pytest
 from django.test import Client
 from oauth2_provider.models import Application
 
-from store_api.models import Order, Product
+from store_api.models import Order, OrderLineItem, Product
 from tests.conftest import AuthActions, ProductFactory, UserFactory
 
 
@@ -51,9 +51,17 @@ class TestOrder:
         assert order.state == "PENDING"
         assert order.customer_id == buyer_user.id
 
+        order_line_items = list(
+            OrderLineItem.objects.filter(order_id=order_id)
+            .filter(product_id=product.id)
+            .all()
+        )
+        assert order_line_items == [
+            OrderLineItem(order=order, product=product, variant="default", quantity=1)
+        ]
+
         product.refresh_from_db()
-        assert product.order_id == order_id
-        assert product.state == Product.STATE_SOLD_OUT
+        assert product.state == Product.STATE_AVAILABLE
         assert list(
             product.stock.filter(variant="default").values("product_id", "available")
         ) == [{"product_id": product.id, "available": 0}]
@@ -63,3 +71,4 @@ class TestOrder:
 # TODO make an order but there's not enough stock
 # TODO make an order but is asking for non existing product(s)
 # TODO make an order but is asking for deleted product
+# TODO make an order with different variants

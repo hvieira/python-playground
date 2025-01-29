@@ -3,7 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-from django_fsm import RETURN_VALUE, FSMField, transition
+from django_fsm import FSMField, transition
 
 
 class BaseEntity(models.Model):
@@ -40,17 +40,6 @@ class Tag(BaseEntity):
         self.save()
 
 
-class Order(BaseEntity):
-
-    class States(models.TextChoices):
-        PENDING = "PENDING", ("Pending")
-        SHIPPED = "SHIPPED", ("Shipped")
-        CANCELLED = "CANCELLED", ("Cancelled")
-
-    state = FSMField(null=False, choices=States, default=States.PENDING)
-    customer = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-
-
 class Product(BaseEntity):
     class Meta:
         constraints = [
@@ -78,8 +67,6 @@ class Product(BaseEntity):
     owner_user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     tags = models.ManyToManyField(Tag)
 
-    order = models.ForeignKey(Order, null=True, default=None, on_delete=models.CASCADE)
-
     def __str__(self):
         return f"<Product id={self.id} title={self.title} state={self.state}>"
 
@@ -93,36 +80,7 @@ class Product(BaseEntity):
         self.stock.all().delete()
         self.deleted = timezone.now()
 
-        # TODO what would happen to a pending order that has a product that is suddenly deleted
-
-    @transition(
-        field=state,
-        source=STATE_AVAILABLE,
-        target=RETURN_VALUE(STATE_SOLD_OUT, STATE_AVAILABLE),
-    )
-    def reserve_for_order(self, order: Order, variant: str, quantity: int):
-        """
-        Reserves stock for an order and updates the state
-        """
-        # TODO an alternative to change this so that a single query is made to
-        # update the stocks is to use bulk update in somewhere called by the view.
-        # but it'll make it harder to update the status based on sold out.
-        # Maybe instead of SOLD_OUT state, this is a presentation issue
-        # a product might be available but if available stock is zero (for all variants)
-        # then a client would need to mark it as sold out
-        stock = [s for s in self.stock.all() if s.variant == variant][0]
-        # TODO if there's a constraint, maybe no need for this check
-        if stock.available >= quantity:
-            self.order = order
-            stock.available = stock.available - quantity
-            # TODO this might not be the best place to do this
-            stock.save()
-
-            return (
-                Product.STATE_SOLD_OUT
-                if stock.available == 0
-                else Product.STATE_AVAILABLE
-            )
+        # TODO what would happen to a order (in each of its states) that has a product that is suddenly deleted
 
 
 class ProductStock(models.Model):
@@ -149,3 +107,35 @@ class ProductStock(models.Model):
 
     def __str__(self):
         return f"<ProductStock id={self.id} variant={self.variant} available={self.available}>"
+
+
+class Order(BaseEntity):
+
+    class States(models.TextChoices):
+        PENDING = "PENDING", ("Pending")
+        SHIPPED = "SHIPPED", ("Shipped")
+        CANCELLED = "CANCELLED", ("Cancelled")
+
+    state = FSMField(null=False, choices=States, default=States.PENDING)
+    customer = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    products = models.ManyToManyField(
+        Product,
+        through="OrderLineItem",
+        through_fields=("order", "product"),
+    )
+
+
+class OrderLineItem(models.Model):
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(quantity__gt=0),
+                name="%(app_label)s_%(class)s_quantity_gt_zero",
+            )
+        ]
+
+    pk = models.CompositePrimaryKey("order_id", "product_id")
+    order = models.ForeignKey(Order, on_delete=models.DO_NOTHING)
+    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
+    variant = models.CharField(null=False)
+    quantity = models.IntegerField(null=False)
