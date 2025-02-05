@@ -20,6 +20,10 @@ The alternative is either:
 - https://docs.djangoproject.com/en/5.1/ref/models/constraints/#django.db.models.UniqueConstraint.fields
 - [DEPRECATED?] to use unique together constraint - https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
 
+## On QuerySet
+### reducing number of queries to fetch relations
+`prefetch_related` will make a separate subsequent query *for each* of the wanted relation/lookup. This means that it's not possible to retrieve a model with relationships in a single query
+
 ## Django Typing
 Django has quite a bit of magic - including classes defined at runtime. An example is RelatedManager which fails to be imported.
 The following https://github.com/typeddjango/django-stubs seems to be able to add some support for this

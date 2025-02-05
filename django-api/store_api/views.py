@@ -298,7 +298,6 @@ class OrderViewSet(GenericViewSet):
             with transaction.atomic():
                 processed_order_line_items = []
                 order = Order.objects.create(customer=request.user)
-                # a separate query is made to load all the products for the products
                 requested_products_stock = stock_queryset.filter(combined_lookup)
 
                 for product_stock in requested_products_stock:
