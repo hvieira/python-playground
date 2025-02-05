@@ -300,12 +300,38 @@ class OrderViewSet(GenericViewSet):
                 order = Order.objects.create(customer=request.user)
                 requested_products_stock = stock_queryset.filter(combined_lookup)
 
+                if len(requested_products_stock) != len(
+                    serializer.validated_data["products"]
+                ):
+                    missing_product_ids = set(
+                        requested_products_by_id.keys()
+                    ).difference(
+                        set([ps.product.id for ps in requested_products_stock])
+                    )
+                    return Response(
+                        {
+                            "error": "requested products and/or stock variants that do not exist",
+                            "detail": missing_product_ids,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
                 for product_stock in requested_products_stock:
                     requested_quantity = requested_products_by_id[
                         product_stock.product.id
                     ]["quantity"]
 
                     product_stock.available -= requested_quantity
+
+                    # we could let this go to the DB for constraint validation, but we can save that roundtrip
+                    if product_stock.available < 0:
+                        return Response(
+                            {
+                                "error": f"available stock for product {product_stock.product.id} is less than desired amount"
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
                     processed_order_line_items.append(
                         OrderLineItem(
                             order=order,
