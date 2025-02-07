@@ -70,9 +70,7 @@ class TestProductSearchAPI:
                     "description": product_3.description,
                     "price": product_3.price,
                     "stock": {
-                        "default": {
-                            "available": 7,
-                        }
+                        "default": 7,
                     },
                     "tags": [],
                 },
@@ -83,9 +81,7 @@ class TestProductSearchAPI:
                     "description": product_2.description,
                     "price": product_2.price,
                     "stock": {
-                        "default": {
-                            "available": 3,
-                        }
+                        "default": 3,
                     },
                     "tags": [],
                 },
@@ -96,9 +92,7 @@ class TestProductSearchAPI:
                     "description": product_1.description,
                     "price": product_1.price,
                     "stock": {
-                        "default": {
-                            "available": 1,
-                        }
+                        "default": 1,
                     },
                     "tags": [],
                 },
@@ -157,9 +151,7 @@ class TestProductSearchAPI:
                     "description": product_1.description,
                     "price": product_1.price,
                     "stock": {
-                        "default": {
-                            "available": 1,
-                        }
+                        "default": 1,
                     },
                     "tags": [],
                 },
@@ -228,9 +220,7 @@ class TestProductSearchAPI:
                     "description": product_3.description,
                     "price": product_3.price,
                     "stock": {
-                        "default": {
-                            "available": 7,
-                        }
+                        "default": 7,
                     },
                     "tags": [],
                 },
@@ -241,9 +231,7 @@ class TestProductSearchAPI:
                     "description": product_2.description,
                     "price": product_2.price,
                     "stock": {
-                        "default": {
-                            "available": 3,
-                        }
+                        "default": 3,
                     },
                     "tags": [],
                 },
@@ -275,9 +263,7 @@ class TestProductSearchAPI:
                     "description": product_1.description,
                     "price": product_1.price,
                     "stock": {
-                        "default": {
-                            "available": 1,
-                        }
+                        "default": 1,
                     },
                     "tags": [],
                 },
@@ -356,9 +342,7 @@ class TestProductSearchAPI:
                     "description": ramen_noodles.description,
                     "price": ramen_noodles.price,
                     "stock": {
-                        "default": {
-                            "available": 12,
-                        }
+                        "default": 12,
                     },
                     # TODO use serializers to transform the py objects to dicts to simplify and reduce code
                     "tags": [
@@ -398,9 +382,7 @@ class TestProductSearchAPI:
                     "description": red_unique_cap.description,
                     "price": red_unique_cap.price,
                     "stock": {
-                        "default": {
-                            "available": 1,
-                        }
+                        "default": 1,
                     },
                     "tags": [
                         {
@@ -422,9 +404,7 @@ class TestProductSearchAPI:
                     "description": red_lipstick.description,
                     "price": red_lipstick.price,
                     "stock": {
-                        "default": {
-                            "available": 3,
-                        }
+                        "default": 3,
                     },
                     "tags": [
                         {

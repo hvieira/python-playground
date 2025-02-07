@@ -38,6 +38,32 @@ it is needed to have a custom validation of the user. While subclassing and impl
 which is a bit inconvenient. A custom authentication implementation would be needed.
 Because the default implementation uses `is_active` field, a custom `save()` can be used to validate that deleted users cannot be active.
 
+## Debugging
+
+### Running a python shell with the django project settings
+This will open a shell with the settings loaded: `python manage.py shell`
+
+Then, we can import and test code. For example, to test serializers:
+```python
+from store_api.serializers import CreateProductRequestSerializer
+
+data = {
+    "title": "t",
+    "description": "d",
+    "price": 1,
+    "stock": {
+        "default": 10,
+        "xl": 3
+    }
+}
+
+s = CreateProductRequestSerializer(data=data)
+s.is_valid()
+s.validated_data
+```
+
+
+
 ## Testing
 ### Test performance
 Creating certain models (e.g. users, oauth app) is slow and makes integration tests take a long time - as fixtures for user creation for every test will compound take spent. Whilst I have tried and added a `base_test.py` file with an example of a base class that could have some potential to speed things up a bit, the real solution is based on fixture scoping - e.g. admin users, oauth application can be reused by a testing session. To be able to do this, these fixtures need the

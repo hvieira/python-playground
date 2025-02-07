@@ -127,9 +127,15 @@ class ProductViewSet(GenericViewSet):
                     owner_user=request.user,
                 )
                 product.save()
-                product.stock.create(
-                    available=serializer.validated_data["available_stock"],
-                )
+
+                # TODO check serializer.stock.get_value() function
+                stock_spec: dict = serializer.validated_data["stock"]
+                # TODO this can probably be achieved with bulk create for a single DB call
+                for variant, stock in stock_spec.items():
+                    product.stock.create(
+                        variant=variant,
+                        available=stock,
+                    )
 
                 product.tags.set(
                     Tag.objects.filter(id__in=serializer.validated_data["tags"])
@@ -148,7 +154,7 @@ class ProductViewSet(GenericViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            product = self.queryset.get(id=id)
+            product = self.queryset.select_for_update().get(id=id)
         except Product.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -160,8 +166,15 @@ class ProductViewSet(GenericViewSet):
         product.price = serializer.validated_data["price"]
 
         with transaction.atomic():
-            product.stock.filter(variant="default").update(
-                available=serializer.validated_data["available_stock"]
+            # RelatedManager .set() function relies on remove() and clear() functions, which are only available
+            # on relationships with ForeignKeys where null=True
+            # https://docs.djangoproject.com/en/5.1/ref/models/relations/#django.db.models.fields.related.RelatedManager.clear
+            ProductStock.objects.filter(product_id=product.id).delete()
+            ProductStock.objects.bulk_create(
+                [
+                    ProductStock(product=product, variant=variant, available=stock)
+                    for variant, stock in serializer.validated_data["stock"].items()
+                ]
             )
 
             product.tags.set(

@@ -37,7 +37,7 @@ class TestProductManagementAPI:
                 "title": product_title,
                 "description": product_description,
                 "price": product_price,
-                "available_stock": product_stock,
+                "stock": {"default": product_stock},
             },
             headers={"Authorization": f"Bearer {access_token.token}"},
         )
@@ -53,9 +53,7 @@ class TestProductManagementAPI:
             "description": product_description,
             "price": product_price,
             "stock": {
-                "default": {
-                    "available": product_stock,
-                }
+                "default": product_stock,
             },
             "tags": [],
         }
@@ -86,37 +84,37 @@ class TestProductManagementAPI:
             {
                 "title": "product_title",
                 "description": "product_description",
-                "available_stock": 7,
+                "stock": {"default": 7},
             },
             {
                 "title": "product_title",
                 "price": 100,
-                "available_stock": 7,
+                "stock": {"default": 7},
             },
             {
                 "description": "product_description",
                 "price": 100,
-                "available_stock": 7,
+                "stock": {"default": 7},
             },
             # product cannot have price less or equal to zero
             {
                 "title": "product_title",
                 "description": "product_description",
                 "price": 0,
-                "available_stock": 1,
+                "stock": {"default": 7},
             },
             {
                 "title": "product_title",
                 "description": "product_description",
                 "price": -1,
-                "available_stock": 1,
+                "stock": {"default": 7},
             },
             # product cannot have negative stock
             {
                 "title": "product_title",
                 "description": "product_description",
                 "price": 100,
-                "available_stock": -1,
+                "stock": {"default": -1},
             },
         ],
     )
@@ -146,7 +144,6 @@ class TestProductManagementAPI:
         self,
         api_client: Client,
     ):
-
         response = api_client.post(
             "http://testserver/api/products/",
             content_type="application/json",
@@ -176,11 +173,12 @@ class TestProductManagementAPI:
         new_product_stock = 7
 
         product = product_factory.create(
-            default_user,
-            "old_product_title",
-            "old_product_description",
-            1003,
-            3,
+            owner=default_user,
+            title="old_product_title",
+            description="old_product_description",
+            price=1003,
+            stock_available=3,
+            extra_stock={"silver": 3},
         )
 
         access_token = auth_actions.generate_api_access_token(
@@ -194,7 +192,7 @@ class TestProductManagementAPI:
                 "title": new_product_title,
                 "description": new_product_description,
                 "price": new_product_price,
-                "available_stock": new_product_stock,
+                "stock": {"default": new_product_stock, "gold": 3},
             },
             headers={"Authorization": f"Bearer {access_token.token}"},
         )
@@ -207,11 +205,7 @@ class TestProductManagementAPI:
             "title": new_product_title,
             "description": new_product_description,
             "price": new_product_price,
-            "stock": {
-                "default": {
-                    "available": new_product_stock,
-                }
-            },
+            "stock": {"default": new_product_stock, "gold": 3},
             "tags": [],
         }
 
@@ -227,7 +221,11 @@ class TestProductManagementAPI:
             {
                 "variant": "default",
                 "available": new_product_stock,
-            }
+            },
+            {
+                "variant": "gold",
+                "available": 3,
+            },
         ]
 
     def test_users_cannot_update_other_users_products(
@@ -259,7 +257,7 @@ class TestProductManagementAPI:
             "title": "bad product",
             "description": "this product is a scam",
             "price": 1,
-            "available_stock": 0,
+            "stock": {"default": 0},
         }
 
         user1_access_token = auth_actions.generate_api_access_token(
@@ -304,7 +302,7 @@ class TestProductManagementAPI:
                 "title": "new_product_title",
                 "description": "new_product_description",
                 "price": 10000,
-                "available_stock": 71,
+                "stock": {"default": 71},
             },
             headers={"Authorization": f"Bearer {access_token.token}"},
         )
@@ -393,7 +391,7 @@ class TestProductManagementAPI:
                 "title": product_title,
                 "description": product_description,
                 "price": product_price,
-                "available_stock": product_stock,
+                "stock": {"default": product_stock},
                 "tags": [
                     str(unique_tag.id),
                     str(glamourous_tag.id),
@@ -413,9 +411,7 @@ class TestProductManagementAPI:
             "description": product_description,
             "price": product_price,
             "stock": {
-                "default": {
-                    "available": product_stock,
-                }
+                "default": product_stock,
             },
             "tags": [
                 {
@@ -471,7 +467,7 @@ class TestProductManagementAPI:
                 "title": new_product_title,
                 "description": new_product_description,
                 "price": new_product_price,
-                "available_stock": new_product_stock,
+                "stock": {"default": new_product_stock},
                 "tags": [
                     str(unique_tag.id),
                     str(glamourous_tag.id),
@@ -488,9 +484,7 @@ class TestProductManagementAPI:
             "description": new_product_description,
             "price": new_product_price,
             "stock": {
-                "default": {
-                    "available": new_product_stock,
-                }
+                "default": new_product_stock,
             },
             "tags": [
                 {
@@ -555,7 +549,7 @@ class TestProductManagementAPI:
                 "title": product.title,
                 "description": product.description,
                 "price": product.price,
-                "available_stock": 1,
+                "stock": {"default": 1},
                 "tags": [
                     str(glamourous_tag.id),
                 ],
@@ -571,9 +565,7 @@ class TestProductManagementAPI:
             "description": product.description,
             "price": product.price,
             "stock": {
-                "default": {
-                    "available": 1,
-                }
+                "default": 1,
             },
             "tags": [
                 {
@@ -593,3 +585,66 @@ class TestProductManagementAPI:
             }
         ]
         assert list(product_in_db.tags.all()) == [glamourous_tag]
+
+    def test_create_product_with_multiple_variants(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_user: User,
+        default_oauth_app: Application,
+    ):
+        product_title = "Amazing Product!"
+        product_description = f"""This can only be found in {default_user.username} store.
+        An amazing item that is now available to all!"""
+        product_price = 7990
+        product_stock = 11
+
+        access_token = auth_actions.generate_api_access_token(
+            default_user, default_oauth_app
+        )
+
+        response = api_client.post(
+            "http://testserver/api/products/",
+            content_type="application/json",
+            data={
+                "title": product_title,
+                "description": product_description,
+                "price": product_price,
+                "stock": {"default": product_stock},
+            },
+            headers={"Authorization": f"Bearer {access_token.token}"},
+        )
+
+        assert response.status_code == 201
+
+        assert response.json()["id"]
+        assigned_product_id = response.json()["id"]
+        assert response.json() == {
+            "id": assigned_product_id,
+            "owner_user_id": str(default_user.id),
+            "title": product_title,
+            "description": product_description,
+            "price": product_price,
+            "stock": {
+                "default": product_stock,
+            },
+            "tags": [],
+        }
+
+        product_in_db = Product.objects.get(id=assigned_product_id)
+        assert product_in_db == Product(
+            id=UUID(assigned_product_id),
+            title=product_title,
+            description=product_description,
+            price=product_price,
+            owner_user=default_user,
+        )
+        assert list(product_in_db.stock.all().values("variant", "available")) == [
+            {
+                "variant": "default",
+                "available": product_stock,
+            }
+        ]
+
+
+# TODO test product create with non existing tag - results in 400 error

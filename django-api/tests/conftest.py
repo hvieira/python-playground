@@ -52,6 +52,8 @@ class ProductFactory:
         price: str,
         state: str = Product.STATE_AVAILABLE,
         stock_available=1,
+        # TODO check if it's simply better to use a stock arg in this form with variant "default" of quantity 1 as default arg value
+        extra_stock={},
         deleted: None | datetime = None,
     ) -> Product:
 
@@ -66,6 +68,8 @@ class ProductFactory:
         product.save()
 
         product.stock.create(available=stock_available)
+        for variant, stock in extra_stock.items():
+            product.stock.create(variant=variant, available=stock)
 
         return product
 

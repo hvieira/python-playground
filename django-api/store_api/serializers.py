@@ -25,14 +25,6 @@ class UpdateUserPasswordRequestSerializer(serializers.Serializer):
     new_password = serializers.CharField(max_length=password_length)
 
 
-class UpdateProductRequestSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=1000)
-    price = serializers.IntegerField(min_value=1)
-    available_stock = serializers.IntegerField(min_value=0)
-    tags = UUIDListSerializer(required=False, default=[])
-
-
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -48,12 +40,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class ProductStockSerializer(serializers.RelatedField):
     def to_representation(self, value):
         # value is of type RelatedManager[ProductStock] and is defined at runtime
-        return {
-            s.variant: {
-                "available": s.available,
-            }
-            for s in value.all()
-        }
+        return {s.variant: s.available for s in value.all()}
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -99,8 +86,14 @@ class CreateProductRequestSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=100)
     description = serializers.CharField(max_length=1000)
     price = serializers.IntegerField(min_value=1)
-    available_stock = serializers.IntegerField(min_value=0)
+    stock = serializers.DictField(
+        child=serializers.IntegerField(min_value=0),
+    )
     tags = UUIDListSerializer(required=False, default=[])
+
+
+class UpdateProductRequestSerializer(CreateProductRequestSerializer):
+    pass
 
 
 class ProductInOrderSerializer(serializers.Serializer):
