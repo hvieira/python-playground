@@ -179,6 +179,17 @@ class TestProductManagementAPI:
             available_stock={"default": 3, "silver": 4},
         )
 
+        product_that_should_not_change = product_factory.create(
+            owner=default_user,
+            title="trousers",
+            description="regular",
+            price=1003,
+            available_stock={"default": 3, "silver": 4, "xl": 3, "s": 4},
+        )
+        product_that_should_not_change_original_update_time = (
+            product_that_should_not_change.updated
+        )
+
         access_token = auth_actions.generate_api_access_token(
             default_user, default_oauth_app
         )
@@ -223,6 +234,33 @@ class TestProductManagementAPI:
             {
                 "variant": "gold",
                 "available": 3,
+            },
+        ]
+
+        # verify that other products have not changed
+        product_that_should_not_change.refresh_from_db()
+        assert (
+            product_that_should_not_change.updated
+            == product_that_should_not_change_original_update_time
+        )
+        assert list(
+            product_that_should_not_change.stock.all().values("variant", "available")
+        ) == [
+            {
+                "variant": "default",
+                "available": 3,
+            },
+            {
+                "variant": "silver",
+                "available": 4,
+            },
+            {
+                "variant": "xl",
+                "available": 3,
+            },
+            {
+                "variant": "s",
+                "available": 4,
             },
         ]
 
