@@ -285,8 +285,10 @@ class OrderViewSet(GenericViewSet):
                 p["id"]: p for p in serializer.validated_data["products"]
             }
 
-            stock_queryset = ProductStock.objects.select_for_update().prefetch_related(
-                "product"
+            stock_queryset = (
+                ProductStock.objects.filter(product__deleted__isnull=True)
+                .select_for_update()
+                .prefetch_related("product")
             )
             lookups = [
                 Q(product_id=requested_product["id"])

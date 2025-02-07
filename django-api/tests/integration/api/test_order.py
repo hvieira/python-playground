@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 from django.test import Client
+from django.utils import timezone
 from oauth2_provider.models import Application
 
 from store_api.models import Order, OrderLineItem, Product
@@ -229,12 +230,101 @@ class TestOrder:
             headers={"Authorization": f"Bearer {buyer_access_token.token}"},
         )
         assert response.status_code == 400
+        assert response.json().keys() == set(["error", "detail"])
+        assert (
+            response.json()["error"]
+            == "requested products and/or stock variants that do not exist"
+        )
+        assert set(response.json()["detail"]) == set(
+            [str(non_existing_product_id1), str(non_existing_product_id2)]
+        )
+
+    def test_attempting_to_create_orders_for_non_existing_products_variants_results_in_error(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_oauth_app: Application,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "somePasswd")
+        buyer_user = user_factory.create("user2@user2.com", "user2", "b786435")
+
+        product = product_factory.create(
+            owner=seller_user,
+            title="very nice t-shirt",
+            description="colourful t-shirt",
+            price=2500,
+            stock_available=7,
+        )
+
+        buyer_access_token = auth_actions.generate_api_access_token(
+            buyer_user, default_oauth_app
+        )
+
+        response = api_client.post(
+            "http://testserver/api/orders/",
+            content_type="application/json",
+            data={
+                "products": [
+                    {
+                        "id": str(product.id),
+                        "variant": "XXXXXXXL",
+                        "quantity": 1,
+                    },
+                ]
+            },
+            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+        )
+        assert response.status_code == 400
         assert response.json() == {
             "error": "requested products and/or stock variants that do not exist",
-            "detail": [str(non_existing_product_id1), str(non_existing_product_id2)],
+            "detail": [str(product.id)],
+        }
+
+    def test_attempting_to_create_order_for_deleted_product_results_in_error(
+        self,
+        api_client: Client,
+        auth_actions: AuthActions,
+        default_oauth_app: Application,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "somePasswd")
+        buyer_user = user_factory.create("user2@user2.com", "user2", "b786435")
+
+        product = product_factory.create(
+            deleted=timezone.now(),
+            owner=seller_user,
+            title="very nice t-shirt",
+            description="colourful t-shirt",
+            price=2500,
+            stock_available=7,
+        )
+
+        buyer_access_token = auth_actions.generate_api_access_token(
+            buyer_user, default_oauth_app
+        )
+
+        response = api_client.post(
+            "http://testserver/api/orders/",
+            content_type="application/json",
+            data={
+                "products": [
+                    {
+                        "id": str(product.id),
+                        "variant": "default",
+                        "quantity": 1,
+                    },
+                ]
+            },
+            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+        )
+        assert response.status_code == 400
+        assert response.json() == {
+            "error": "requested products and/or stock variants that do not exist",
+            "detail": [str(product.id)],
         }
 
 
-# TODO test_attempting_to_create_orders_for_non_existing_products_variants_results_in_error
-# TODO make an order but is asking for deleted product
 # TODO make an order with different variants
