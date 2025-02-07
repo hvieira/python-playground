@@ -6,7 +6,7 @@ import pytest
 from django.test import Client
 from oauth2_provider.models import AccessToken, Application
 
-from store_api.models import Product, Tag, User
+from store_api.models import Product, ProductStock, Tag, User
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +51,7 @@ class ProductFactory:
         description: str,
         price: str,
         state: str = Product.STATE_AVAILABLE,
-        stock_available=1,
-        # TODO check if it's simply better to use a stock arg in this form with variant "default" of quantity 1 as default arg value
-        extra_stock={},
+        available_stock={"default": 1},
         deleted: None | datetime = None,
     ) -> Product:
 
@@ -67,9 +65,12 @@ class ProductFactory:
         )
         product.save()
 
-        product.stock.create(available=stock_available)
-        for variant, stock in extra_stock.items():
-            product.stock.create(variant=variant, available=stock)
+        ProductStock.objects.bulk_create(
+            [
+                ProductStock(product=product, variant=variant, available=stock)
+                for variant, stock in available_stock.items()
+            ]
+        )
 
         return product
 

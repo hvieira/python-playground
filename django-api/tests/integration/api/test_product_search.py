@@ -27,7 +27,6 @@ class TestProductSearchAPI:
             title="user1_product_1",
             description="cheap",
             price=1003,
-            stock_available=1,
         )
 
         product_2 = product_factory.create(
@@ -35,7 +34,7 @@ class TestProductSearchAPI:
             title="user1_product_2",
             description="expensive",
             price=50000,
-            stock_available=3,
+            available_stock={"default": 3},
         )
 
         product_3 = product_factory.create(
@@ -43,7 +42,7 @@ class TestProductSearchAPI:
             title="user2_product",
             description="user2_product_description",
             price=709,
-            stock_available=7,
+            available_stock={"default": 7},
         )
 
         user3_access_token = auth_actions.generate_api_access_token(
@@ -115,7 +114,6 @@ class TestProductSearchAPI:
             title="user1_product_1",
             description="cheap",
             price=1003,
-            stock_available=1,
         )
 
         product_factory.create(
@@ -175,7 +173,6 @@ class TestProductSearchAPI:
             title="user1_product_1",
             description="cheap",
             price=1003,
-            stock_available=1,
         )
 
         product_2 = product_factory.create(
@@ -183,7 +180,7 @@ class TestProductSearchAPI:
             title="user1_product_2",
             description="expensive",
             price=50000,
-            stock_available=3,
+            available_stock={"default": 3},
         )
 
         product_3 = product_factory.create(
@@ -191,7 +188,7 @@ class TestProductSearchAPI:
             title="user2_product",
             description="user2_product_description",
             price=709,
-            stock_available=7,
+            available_stock={"default": 7},
         )
 
         user3_access_token = auth_actions.generate_api_access_token(
@@ -294,7 +291,7 @@ class TestProductSearchAPI:
             title="red lipstick makeup",
             description="red lipstick to look sharp every day",
             price=1003,
-            stock_available=3,
+            available_stock={"default": 3},
         )
         red_lipstick.tags.set([beauty_tag, red_tag])
 
@@ -303,7 +300,7 @@ class TestProductSearchAPI:
             title="ramen noodles",
             description="These noodles will be amazing in any ramen broth",
             price=50000,
-            stock_available=12,
+            available_stock={"default": 12},
         )
         ramen_noodles.tags.set([food_tag, white_tag])
 
@@ -312,7 +309,6 @@ class TestProductSearchAPI:
             title="cap for yo head",
             description="Wearing this unique cap will make your coolness level over 9000!",
             price=709,
-            stock_available=1,
         )
         red_unique_cap.tags.set([red_tag, unique_tag])
 

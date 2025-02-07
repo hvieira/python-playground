@@ -28,7 +28,6 @@ class TestOrder:
             title="user1_product_1",
             description="cheap",
             price=1003,
-            stock_available=1,
         )
 
         request_payload = {
@@ -84,14 +83,14 @@ class TestOrder:
             title="user1_product_1",
             description="cheap",
             price=1000,
-            stock_available=2,
+            available_stock={"default": 2},
         )
         product2 = product_factory.create(
             owner=seller_user2,
             title="user1_product_2",
             description="expensive",
             price=25999,
-            stock_available=7,
+            available_stock={"default": 7},
         )
 
         buyer_access_token = auth_actions.generate_api_access_token(
@@ -151,14 +150,14 @@ class TestOrder:
             title="user1_product_1",
             description="cheap",
             price=1000,
-            stock_available=2,
+            available_stock={"default": 2},
         )
         product2 = product_factory.create(
             owner=seller_user2,
             title="user1_product_2",
             description="expensive",
             price=25999,
-            stock_available=7,
+            available_stock={"default": 7},
         )
 
         buyer_access_token = auth_actions.generate_api_access_token(
@@ -255,7 +254,7 @@ class TestOrder:
             title="very nice t-shirt",
             description="colourful t-shirt",
             price=2500,
-            stock_available=7,
+            available_stock={"default": 7},
         )
 
         buyer_access_token = auth_actions.generate_api_access_token(
@@ -299,7 +298,7 @@ class TestOrder:
             title="very nice t-shirt",
             description="colourful t-shirt",
             price=2500,
-            stock_available=7,
+            available_stock={"default": 7},
         )
 
         buyer_access_token = auth_actions.generate_api_access_token(

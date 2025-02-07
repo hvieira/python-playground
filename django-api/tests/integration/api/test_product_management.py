@@ -170,15 +170,13 @@ class TestProductManagementAPI:
         new_product_description = f"""This can only be found in {default_user.username} store.
         An amazing item that is now available to all!"""
         new_product_price = 7990
-        new_product_stock = 7
 
         product = product_factory.create(
             owner=default_user,
             title="old_product_title",
             description="old_product_description",
             price=1003,
-            stock_available=3,
-            extra_stock={"silver": 3},
+            available_stock={"default": 3, "silver": 4},
         )
 
         access_token = auth_actions.generate_api_access_token(
@@ -192,7 +190,7 @@ class TestProductManagementAPI:
                 "title": new_product_title,
                 "description": new_product_description,
                 "price": new_product_price,
-                "stock": {"default": new_product_stock, "gold": 3},
+                "stock": {"default": 7, "gold": 3},
             },
             headers={"Authorization": f"Bearer {access_token.token}"},
         )
@@ -205,7 +203,7 @@ class TestProductManagementAPI:
             "title": new_product_title,
             "description": new_product_description,
             "price": new_product_price,
-            "stock": {"default": new_product_stock, "gold": 3},
+            "stock": {"default": 7, "gold": 3},
             "tags": [],
         }
 
@@ -220,7 +218,7 @@ class TestProductManagementAPI:
         assert list(product_in_db.stock.all().values("variant", "available")) == [
             {
                 "variant": "default",
-                "available": new_product_stock,
+                "available": 7,
             },
             {
                 "variant": "gold",
@@ -450,7 +448,7 @@ class TestProductManagementAPI:
             "old_product_title",
             "old_product_description",
             1003,
-            3,
+            available_stock={"default": 3},
         )
 
         unique_tag = tag_factory.create("unique", "Unique products")
@@ -530,7 +528,7 @@ class TestProductManagementAPI:
             "product_title",
             "product_description",
             1003,
-            3,
+            available_stock={"default": 3},
         )
 
         unique_tag = tag_factory.create("unique", "Unique products")
