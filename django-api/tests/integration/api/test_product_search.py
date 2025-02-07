@@ -1,10 +1,10 @@
 import pytest
 from django.test import Client
 from django.utils import timezone
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken
 
 from store_api.models import Product
-from tests.conftest import AuthActions, ProductFactory, TagFactory, UserFactory
+from tests.conftest import ProductFactory, TagFactory, UserFactory
 
 
 @pytest.mark.django_db()
@@ -13,14 +13,12 @@ class TestProductSearchAPI:
     def test_get_products_returns_paged_list_newest_first(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
         user2 = user_factory.create("user2@user2.com", "user2", "b786435")
-        user3 = user_factory.create("user3@user3.com", "user3", "n0v8e7ryt9t!")
 
         product_1 = product_factory.create(
             owner=user1,
@@ -45,14 +43,12 @@ class TestProductSearchAPI:
             available_stock={"default": 7},
         )
 
-        user3_access_token = auth_actions.generate_api_access_token(
-            user3, default_oauth_app
-        )
-
         response = api_client.get(
             "http://testserver/api/products/",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {user3_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 200
         assert response.json() == {
@@ -101,13 +97,11 @@ class TestProductSearchAPI:
     def test_get_products_does_not_return_deleted_products(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
-        user3 = user_factory.create("user3@user3.com", "user3", "n0v8e7ryt9t!")
 
         product_1 = product_factory.create(
             owner=user1,
@@ -125,14 +119,12 @@ class TestProductSearchAPI:
             deleted=timezone.now(),
         )
 
-        user3_access_token = auth_actions.generate_api_access_token(
-            user3, default_oauth_app
-        )
-
         response = api_client.get(
             "http://testserver/api/products/",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {user3_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 200
         assert response.json() == {
@@ -159,14 +151,12 @@ class TestProductSearchAPI:
     def test_get_products_returns_paging_usage(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
         user2 = user_factory.create("user2@user2.com", "user2", "b786435")
-        user3 = user_factory.create("user3@user3.com", "user3", "n0v8e7ryt9t!")
 
         product_1 = product_factory.create(
             owner=user1,
@@ -191,16 +181,14 @@ class TestProductSearchAPI:
             available_stock={"default": 7},
         )
 
-        user3_access_token = auth_actions.generate_api_access_token(
-            user3, default_oauth_app
-        )
-
         request_page_size = 2
         response = api_client.get(
             "http://testserver/api/products/",
             query_params={"page_size": request_page_size},
             content_type="application/json",
-            headers={"Authorization": f"Bearer {user3_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 200
         assert response.json() == {
@@ -243,7 +231,9 @@ class TestProductSearchAPI:
                 "offset": product_2.updated.isoformat().replace("+00:00", "Z"),
             },
             content_type="application/json",
-            headers={"Authorization": f"Bearer {user3_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 200
         assert response.json() == {
@@ -270,15 +260,13 @@ class TestProductSearchAPI:
     def test_get_products_by_search_term_returns_relevant_results_using_title_description_and_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
         tag_factory: TagFactory,
     ):
         user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
         user2 = user_factory.create("user2@user2.com", "user2", "b786435")
-        user3 = user_factory.create("user3@user3.com", "user3", "n0v8e7ryt9t!")
 
         beauty_tag = tag_factory.create("beauty", "Beauty products")
         food_tag = tag_factory.create("food", "Food products")
@@ -312,15 +300,13 @@ class TestProductSearchAPI:
         )
         red_unique_cap.tags.set([red_tag, unique_tag])
 
-        user3_access_token = auth_actions.generate_api_access_token(
-            user3, default_oauth_app
-        )
-
         request_page_size = 2
         response = api_client.get(
             "http://testserver/api/products/",
             query_params={"search_term": "noodles", "page_size": request_page_size},
-            headers={"Authorization": f"Bearer {user3_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -360,7 +346,9 @@ class TestProductSearchAPI:
         response = api_client.get(
             "http://testserver/api/products/",
             query_params={"search_term": "red", "page_size": request_page_size},
-            headers={"Authorization": f"Bearer {user3_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200

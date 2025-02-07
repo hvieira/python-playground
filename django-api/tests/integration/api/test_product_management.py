@@ -4,7 +4,7 @@ from uuid import UUID
 
 import pytest
 from django.test import Client
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken, Application
 
 from store_api.models import Product, User
 from tests.conftest import AuthActions, ProductFactory, TagFactory, UserFactory
@@ -16,19 +16,14 @@ class TestProductManagementAPI:
     def test_create_product(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
     ):
         product_title = "Amazing Product!"
         product_description = f"""This can only be found in {default_user.username} store.
         An amazing item that is now available to all!"""
         product_price = 7990
         product_stock = 7
-
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
 
         response = api_client.post(
             "http://testserver/api/products/",
@@ -39,7 +34,9 @@ class TestProductManagementAPI:
                 "price": product_price,
                 "stock": {"default": product_stock},
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 201
@@ -120,21 +117,17 @@ class TestProductManagementAPI:
     )
     def test_create_product_malformed_request(
         self,
-        bad_request_body,
+        bad_request_body: dict,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
     ):
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.post(
             "http://testserver/api/products/",
             content_type="application/json",
             data=bad_request_body,
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 400
@@ -161,9 +154,8 @@ class TestProductManagementAPI:
     def test_update_product(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         product_factory: ProductFactory,
     ):
         new_product_title = "Amazing Product!"
@@ -190,10 +182,6 @@ class TestProductManagementAPI:
             product_that_should_not_change.updated
         )
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.put(
             f"http://testserver/api/products/{str(product.id)}/",
             content_type="application/json",
@@ -203,7 +191,9 @@ class TestProductManagementAPI:
                 "price": new_product_price,
                 "stock": {"default": 7, "gold": 3},
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -321,16 +311,8 @@ class TestProductManagementAPI:
         assert response.status_code == 403
 
     def test_update_non_existing_product(
-        self,
-        api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
+        self, api_client: Client, default_user_long_lived_access_token: AccessToken
     ):
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.put(
             f"http://testserver/api/products/{str(uuid.uuid4())}/",
             content_type="application/json",
@@ -340,7 +322,9 @@ class TestProductManagementAPI:
                 "price": 10000,
                 "stock": {"default": 71},
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 404
@@ -402,9 +386,8 @@ class TestProductManagementAPI:
     def test_create_product_with_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         tag_factory: TagFactory,
     ):
         product_title = "Amazing Product!"
@@ -415,10 +398,6 @@ class TestProductManagementAPI:
 
         unique_tag = tag_factory.create("unique", "Unique products")
         glamourous_tag = tag_factory.create("glamourous", "Glamour related products")
-
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
 
         response = api_client.post(
             "http://testserver/api/products/",
@@ -433,7 +412,9 @@ class TestProductManagementAPI:
                     str(glamourous_tag.id),
                 ],
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 201
@@ -469,9 +450,8 @@ class TestProductManagementAPI:
     def test_update_product_with_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         product_factory: ProductFactory,
         tag_factory: TagFactory,
     ):
@@ -492,10 +472,6 @@ class TestProductManagementAPI:
         unique_tag = tag_factory.create("unique", "Unique products")
         glamourous_tag = tag_factory.create("glamourous", "Glamour related products")
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.put(
             f"http://testserver/api/products/{str(product.id)}/",
             content_type="application/json",
@@ -509,7 +485,9 @@ class TestProductManagementAPI:
                     str(glamourous_tag.id),
                 ],
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -555,9 +533,8 @@ class TestProductManagementAPI:
     def test_update_product_replace_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
         product_factory: ProductFactory,
         tag_factory: TagFactory,
     ):
@@ -574,10 +551,6 @@ class TestProductManagementAPI:
 
         product.tags.add(unique_tag)
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.put(
             f"http://testserver/api/products/{str(product.id)}/",
             content_type="application/json",
@@ -590,7 +563,9 @@ class TestProductManagementAPI:
                     str(glamourous_tag.id),
                 ],
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -625,19 +600,14 @@ class TestProductManagementAPI:
     def test_create_product_with_multiple_variants(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
     ):
         product_title = "Amazing Product!"
         product_description = f"""This can only be found in {default_user.username} store.
         An amazing item that is now available to all!"""
         product_price = 7990
         product_stock = 11
-
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
 
         response = api_client.post(
             "http://testserver/api/products/",
@@ -648,7 +618,9 @@ class TestProductManagementAPI:
                 "price": product_price,
                 "stock": {"default": product_stock},
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 201

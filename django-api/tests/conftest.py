@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from time import perf_counter
 
 import pytest
 from django.test import Client
@@ -80,17 +79,33 @@ def product_factory() -> ProductFactory:
     return ProductFactory()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def user_factory() -> UserFactory:
     return UserFactory()
 
 
-# TODO check if this can be session scoped
-@pytest.fixture
-def default_user(user_factory: UserFactory, default_password: str) -> User:
-    return user_factory.create(
-        email="john.doe@test.com", username="john.doe", password=default_password
-    )
+@pytest.fixture(scope="session")
+def default_user(
+    django_db_setup, django_db_blocker, user_factory: UserFactory, default_password: str
+) -> User:
+    with django_db_blocker.unblock():
+        return user_factory.create(
+            email="john.doe@test.com", username="john.doe", password=default_password
+        )
+
+
+@pytest.fixture(scope="session")
+def default_user_long_lived_access_token(
+    django_db_setup, django_db_blocker, default_user, default_oauth_app
+) -> AccessToken:
+    with django_db_blocker.unblock():
+        return AccessToken.objects.create(
+            user=default_user,
+            token=f"{default_user.username}-{datetime.now().isoformat()}-long-lived-token",
+            application=default_oauth_app,
+            expires=datetime.now(timezone.utc) + timedelta(hours=1),
+            scope="read write",
+        )
 
 
 @pytest.fixture
@@ -109,8 +124,8 @@ def default_deleted_user(user_factory: UserFactory, default_password: str) -> Us
     A fixture depicting a user deleted 1 hour prior
     """
     return user_factory.create(
-        email="john.doe@test.com",
-        username="john.doe",
+        email="deleted.john.doe@test.com",
+        username="deleted.john.doe",
         password=default_password,
         deleted=datetime.now(timezone.utc) - timedelta(hours=1),
         is_active=False,
@@ -137,15 +152,12 @@ def custom_admin_user(
     django_db_setup, django_db_blocker, default_admin_password: str
 ) -> User:
     with django_db_blocker.unblock():
-        t1 = perf_counter()
-        val = User.objects.create_user(
+        return User.objects.create_user(
             email="admin@testserver.com",
             username="root@testserver",
             password=default_admin_password,
             is_superuser=True,
         )
-        logger.info(f"admin_user took {perf_counter() - t1}")
-        return val
 
 
 @pytest.fixture(scope="session")
@@ -157,8 +169,7 @@ def default_oauth_app(
     custom_admin_user: User,
 ) -> Application:
     with django_db_blocker.unblock():
-        t1 = perf_counter()
-        val = Application.objects.create(
+        return Application.objects.create(
             client_id=default_oauth_app_client_id,
             name=default_oauth_app_client_id,
             user=custom_admin_user,
@@ -168,12 +179,9 @@ def default_oauth_app(
             redirect_uris=["http://testserver/nonexist/callback"],
             post_logout_redirect_uris=["http://testserver/nonexist/logout"],
         )
-        logger.info(f"default_oauth_app took {perf_counter() - t1}")
-        return val
 
 
 class AuthActions:
-
     def generate_api_access_token(
         self, user: User, oauth_app: Application, scope="read write"
     ) -> AccessToken:
@@ -189,7 +197,7 @@ class AuthActions:
         self,
         user: User,
         oauth_app: Application,
-        scopes="read write",
+        scope="read write",
         expired_by=timedelta(minutes=1),
     ) -> AccessToken:
         return AccessToken.objects.create(
@@ -197,10 +205,11 @@ class AuthActions:
             token="blahblahblah",
             application=oauth_app,
             expires=datetime.now(timezone.utc) - expired_by,
+            scope=scope,
         )
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def auth_actions():
     return AuthActions()
 

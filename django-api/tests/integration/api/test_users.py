@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.contrib.auth.hashers import check_password
 from django.test import Client
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken, Application
 
 from store_api.models import User
 from tests.conftest import AuthActions, UserFactory
@@ -101,21 +101,21 @@ class TestUserAPI:
         self,
         api_client: Client,
         auth_actions: AuthActions,
-        default_user: User,
-        default_password: str,
+        user_factory: UserFactory,
         default_oauth_app: Application,
     ):
+        old_password = "Oldy!$"
         new_password = "Ch3ckITOuT!"
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
+        user = user_factory.create("test@test.com", "userz", old_password)
+
+        access_token = auth_actions.generate_api_access_token(user, default_oauth_app)
 
         response = api_client.post(
-            f"http://testserver/api/users/{default_user.id}/update-password/",
+            f"http://testserver/api/users/{user.id}/update-password/",
             content_type="application/json",
             data={
-                "old_password": default_password,
+                "old_password": old_password,
                 "new_password": new_password,
             },
             headers={"Authorization": f"Bearer {access_token.token}"},
@@ -123,22 +123,17 @@ class TestUserAPI:
 
         assert response.status_code == 204
 
-        default_user.refresh_from_db()
-        assert check_password(new_password, default_user.password)
+        user.refresh_from_db()
+        assert check_password(new_password, user.password)
 
     def test_update_password_needs_correct_old_password(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
         default_password,
-        default_oauth_app: Application,
+        default_user_long_lived_access_token: AccessToken,
     ):
         new_password = "Ch3ckITOuT!"
-
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
 
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
@@ -147,7 +142,9 @@ class TestUserAPI:
                 "old_password": "wrongPassWord",
                 "new_password": new_password,
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 400
@@ -170,21 +167,18 @@ class TestUserAPI:
     def test_update_password_invalid_request_body(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
         default_user: User,
-        default_password,
-        default_oauth_app: Application,
-        request_body,
+        default_password: str,
+        default_user_long_lived_access_token: AccessToken,
+        request_body: dict,
     ):
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.post(
             f"http://testserver/api/users/{default_user.id}/update-password/",
             content_type="application/json",
             data=request_body,
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 400
@@ -197,7 +191,7 @@ class TestUserAPI:
         self,
         api_client: Client,
         default_user: User,
-        default_password,
+        default_password: str,
     ):
         new_password = "Ch3ckITOuT!"
 
@@ -220,7 +214,7 @@ class TestUserAPI:
         self,
         api_client: Client,
         default_user: User,
-        default_password,
+        default_password: str,
     ):
         new_password = "Ch3ckITOuT!"
 
@@ -245,7 +239,7 @@ class TestUserAPI:
         api_client: Client,
         auth_actions: AuthActions,
         default_user: User,
-        default_password,
+        default_password: str,
         default_oauth_app: Application,
     ):
         new_password = "Ch3ckITOuT!"
@@ -401,17 +395,13 @@ class TestUserAPI:
         self,
         api_client: Client,
         default_user: User,
-        default_oauth_app: Application,
-        auth_actions: AuthActions,
+        default_user_long_lived_access_token: AccessToken,
     ):
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
-        # user1 can see user2 public profile
         response = api_client.get(
             f"http://testserver/api/users/{default_user.id}/",
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200

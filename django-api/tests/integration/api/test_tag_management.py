@@ -3,7 +3,7 @@ from uuid import UUID
 
 import pytest
 from django.test import Client
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken, Application
 
 from store_api.models import Tag, User
 from tests.conftest import AuthActions, TagFactory
@@ -54,21 +54,15 @@ class TestTagAPI:
         )
 
     def test_non_staff_users_cannot_create_tags(
-        self,
-        api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
+        self, api_client: Client, default_user_long_lived_access_token: AccessToken
     ):
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.post(
             "http://testserver/api/tags/",
             content_type="application/json",
             data=CREATE_TAG_PAYLOAD,
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 403
@@ -76,21 +70,17 @@ class TestTagAPI:
     def test_authenticated_users_can_list_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
         tag_factory: TagFactory,
+        default_user_long_lived_access_token: AccessToken,
     ):
         tag1 = tag_factory.create("tag1", "tag1 description")
         tag2 = tag_factory.create("tag2", "tag2 description")
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.get(
             "http://testserver/api/tags/",
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -117,24 +107,20 @@ class TestTagAPI:
     def test_authenticated_users_can_list_tags_with_pagination(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
         tag_factory: TagFactory,
+        default_user_long_lived_access_token: AccessToken,
     ):
         tag1 = tag_factory.create("tag1", "tag1 description")
         tag2 = tag_factory.create("tag2", "tag2 description")
-
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
 
         response = api_client.get(
             "http://testserver/api/tags/",
             query_params={
                 "page_size": 1,
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -159,7 +145,9 @@ class TestTagAPI:
                 "page_size": 20,
                 "offset": tag1.created.isoformat().replace("+00:00", "Z"),
             },
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200
@@ -181,34 +169,34 @@ class TestTagAPI:
     def test_authenticated_users_can_check_if_a_tag_exists(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
         tag_factory: TagFactory,
+        default_user_long_lived_access_token: AccessToken,
     ):
         tag1 = tag_factory.create("tag1", "tag1 description")
         tag2 = tag_factory.create("tag2", "tag2 description")
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.head(
             f"http://testserver/api/tags/{str(tag1.id)}/",
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 200
 
         response = api_client.head(
             f"http://testserver/api/tags/{str(tag2.id)}/",
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 200
 
         # check for a tag that does not exist
         response = api_client.head(
             f"http://testserver/api/tags/{str(uuid.uuid4())}/",
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 404
 
@@ -249,24 +237,20 @@ class TestTagAPI:
     def test_non_staff_users_cannot_update_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
         tag_factory: TagFactory,
+        default_user_long_lived_access_token: AccessToken,
     ):
         tag1 = tag_factory.create("tag1", "tag1 description")
         tag_new_name = "new"
         tag_new_description = "Depicts new items"
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.put(
             f"http://testserver/api/tags/{str(tag1.id)}/",
             content_type="application/json",
             data={"name": tag_new_name, "description": tag_new_description},
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 403
@@ -300,21 +284,17 @@ class TestTagAPI:
     def test_non_staff_users_cannot_delete_tags(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
         tag_factory: TagFactory,
+        default_user_long_lived_access_token: AccessToken,
     ):
         tag1 = tag_factory.create("tag1", "tag1 description")
-
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
 
         response = api_client.delete(
             f"http://testserver/api/tags/{str(tag1.id)}/",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 403
@@ -322,24 +302,20 @@ class TestTagAPI:
     def test_users_can_search_for_tags_using_a_term(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_user: User,
-        default_oauth_app: Application,
         tag_factory: TagFactory,
+        default_user_long_lived_access_token: AccessToken,
     ):
         _ = tag_factory.create("beauty", "Beauty products")
         tag2 = tag_factory.create("fashion", "Fashion products")
         _ = tag_factory.create("food", "Food items")
         tag4 = tag_factory.create("fabulous", "Fabulous")
 
-        access_token = auth_actions.generate_api_access_token(
-            default_user, default_oauth_app
-        )
-
         response = api_client.get(
             "http://testserver/api/tags/",
             query_params={"search_term": "fa"},
-            headers={"Authorization": f"Bearer {access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
 
         assert response.status_code == 200

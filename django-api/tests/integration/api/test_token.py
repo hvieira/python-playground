@@ -15,7 +15,7 @@ default_api_refresh_token = "NIdtr$vBnjsdtu254njkGVLL47nBretsdgfIu3h7"
 class TestUserAPITokens:
 
     @patch("oauthlib.oauth2.rfc6749.tokens.random_token_generator")
-    def test_create_get_token_for_user(
+    def test_get_token_for_user(
         self,
         _random_token_generator,
         api_client: Client,
@@ -50,7 +50,7 @@ class TestUserAPITokens:
             "scope": "read write",
         }
 
-    def test_create_get_token_for_deleted_user(
+    def test_get_token_for_deleted_user(
         self,
         api_client: Client,
         default_deleted_user: User,

@@ -3,10 +3,10 @@ import uuid
 import pytest
 from django.test import Client
 from django.utils import timezone
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken
 
-from store_api.models import Order, OrderLineItem, Product
-from tests.conftest import AuthActions, ProductFactory, UserFactory
+from store_api.models import Order, OrderLineItem, Product, User
+from tests.conftest import ProductFactory, UserFactory
 
 
 @pytest.mark.django_db()
@@ -15,13 +15,13 @@ class TestOrder:
     def test_created_orders_are_placed_in_pending(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         seller_user = user_factory.create("user1@user1.com", "user1", "easyPass")
-        buyer_user = user_factory.create("user2@user2.com", "user2", "b786435")
+        buyer_user = default_user
 
         product = product_factory.create(
             owner=seller_user,
@@ -34,15 +34,13 @@ class TestOrder:
             "products": [{"id": str(product.id), "variant": "default", "quantity": 1}]
         }
 
-        buyer_access_token = auth_actions.generate_api_access_token(
-            buyer_user, default_oauth_app
-        )
-
         response = api_client.post(
             "http://testserver/api/orders/",
             content_type="application/json",
             data=request_payload,
-            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 201
 
@@ -69,14 +67,14 @@ class TestOrder:
     def test_orders_can_have_multiple_products_with_specific_quantities(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         seller_user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
         seller_user2 = user_factory.create("user2@user2.com", "user2", "L33tPasswd!")
-        buyer_user = user_factory.create("user3@user3.com", "user3", "b786435")
+        buyer_user = default_user
 
         product1 = product_factory.create(
             owner=seller_user1,
@@ -93,10 +91,6 @@ class TestOrder:
             available_stock={"default": 7},
         )
 
-        buyer_access_token = auth_actions.generate_api_access_token(
-            buyer_user, default_oauth_app
-        )
-
         response = api_client.post(
             "http://testserver/api/orders/",
             content_type="application/json",
@@ -106,7 +100,9 @@ class TestOrder:
                     {"id": str(product2.id), "variant": "default", "quantity": 3},
                 ]
             },
-            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 201
 
@@ -136,14 +132,14 @@ class TestOrder:
     def test_trying_to_make_orders_with_insufficient_stock_fails(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         seller_user1 = user_factory.create("user1@user1.com", "user1", "easyPass")
         seller_user2 = user_factory.create("user2@user2.com", "user2", "L33tPasswd!")
-        buyer_user = user_factory.create("user3@user3.com", "user3", "b786435")
+        buyer = default_user
 
         product1 = product_factory.create(
             owner=seller_user1,
@@ -160,10 +156,6 @@ class TestOrder:
             available_stock={"default": 7},
         )
 
-        buyer_access_token = auth_actions.generate_api_access_token(
-            buyer_user, default_oauth_app
-        )
-
         response = api_client.post(
             "http://testserver/api/orders/",
             content_type="application/json",
@@ -173,12 +165,22 @@ class TestOrder:
                     {"id": str(product2.id), "variant": "default", "quantity": 3},
                 ]
             },
-            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 400
         assert response.json() == {
             "error": f"available stock for product {product1.id} is less than desired amount"
         }
+
+        # verify no order was made
+        assert (
+            Order.objects.filter(customer=buyer)
+            .filter(products__in=[product1.id, product2.id])
+            .count()
+            == 0
+        )
 
         # verify stocks have not been modified
         product1.refresh_from_db()
@@ -196,18 +198,12 @@ class TestOrder:
     def test_attempting_to_create_orders_for_non_existing_products_results_in_error(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
-        user_factory: UserFactory,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
     ):
-        buyer_user = user_factory.create("user2@user2.com", "user2", "b786435")
-
         non_existing_product_id1 = uuid.uuid4()
         non_existing_product_id2 = uuid.uuid4()
-
-        buyer_access_token = auth_actions.generate_api_access_token(
-            buyer_user, default_oauth_app
-        )
+        buyer = default_user
 
         response = api_client.post(
             "http://testserver/api/orders/",
@@ -226,7 +222,9 @@ class TestOrder:
                     },
                 ]
             },
-            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 400
         assert response.json().keys() == set(["error", "detail"])
@@ -238,16 +236,24 @@ class TestOrder:
             [str(non_existing_product_id1), str(non_existing_product_id2)]
         )
 
+        # verify no order was made
+        assert (
+            Order.objects.filter(customer=buyer)
+            .filter(products__in=[non_existing_product_id1, non_existing_product_id2])
+            .count()
+            == 0
+        )
+
     def test_attempting_to_create_orders_for_non_existing_products_variants_results_in_error(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         seller_user = user_factory.create("user1@user1.com", "user1", "somePasswd")
-        buyer_user = user_factory.create("user2@user2.com", "user2", "b786435")
+        buyer = default_user
 
         product = product_factory.create(
             owner=seller_user,
@@ -255,10 +261,6 @@ class TestOrder:
             description="colourful t-shirt",
             price=2500,
             available_stock={"default": 7},
-        )
-
-        buyer_access_token = auth_actions.generate_api_access_token(
-            buyer_user, default_oauth_app
         )
 
         response = api_client.post(
@@ -273,7 +275,9 @@ class TestOrder:
                     },
                 ]
             },
-            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 400
         assert response.json() == {
@@ -281,16 +285,24 @@ class TestOrder:
             "detail": [str(product.id)],
         }
 
+        # verify no order was made
+        assert (
+            Order.objects.filter(customer=buyer)
+            .filter(products__in=[product.id])
+            .count()
+            == 0
+        )
+
     def test_attempting_to_create_order_for_deleted_product_results_in_error(
         self,
         api_client: Client,
-        auth_actions: AuthActions,
-        default_oauth_app: Application,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
         user_factory: UserFactory,
         product_factory: ProductFactory,
     ):
         seller_user = user_factory.create("user1@user1.com", "user1", "somePasswd")
-        buyer_user = user_factory.create("user2@user2.com", "user2", "b786435")
+        buyer = default_user
 
         product = product_factory.create(
             deleted=timezone.now(),
@@ -299,10 +311,6 @@ class TestOrder:
             description="colourful t-shirt",
             price=2500,
             available_stock={"default": 7},
-        )
-
-        buyer_access_token = auth_actions.generate_api_access_token(
-            buyer_user, default_oauth_app
         )
 
         response = api_client.post(
@@ -317,13 +325,23 @@ class TestOrder:
                     },
                 ]
             },
-            headers={"Authorization": f"Bearer {buyer_access_token.token}"},
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
         )
         assert response.status_code == 400
         assert response.json() == {
             "error": "requested products and/or stock variants that do not exist",
             "detail": [str(product.id)],
         }
+
+        # verify no order was made
+        assert (
+            Order.objects.filter(customer=buyer)
+            .filter(products__in=[product.id])
+            .count()
+            == 0
+        )
 
 
 # TODO make an order with different variants
