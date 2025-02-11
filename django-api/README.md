@@ -22,35 +22,35 @@ Features:
             - stock
         - [x] dissociate/associate tags
     - [x] see other users store (any user products)
-    - [WIP] can buy products/place an order (from any user)
-        - list all products (ordered by newest creation date)
-        - search for products (via title, description and tags)
-        - put products into a bag
-        - create order from a bag
+    - [x] - search for products (via title, description and tags) - newest first
+    - [x] can buy products/place an order (from any user)
+    - [ ] orders follow state: `PENDING_CONFIRMATION` (requires the client to confirm the order within a set time frame (e.g. 1-5 min) with payment details. Otherwise it is reverted to `NOT_CONFIRMED` state) -> `CONFIRMED`(the order is confirmed and (pseudo)payment should be processed) -> `ACCEPTED`
+    - [ ] put products into a bag
+    - [ ] create order from a bag
     - [x] search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
 - staff can:
     - [x] manage tags (name, description)
+
 
 Technical features:
 - [x] backing postgres DB
 - [x] all entities should have UUID for ids
 - expired user API tokens should be removed (check if lib does it)
 - [x] static analysis of code - isort, black, ...
-- document APIs and have "contract" testing
-- separate test runs for unit and integration/api tests. The latter are slower and should be run separately
-- all dates/timestamps should be in UTC timezone
-- all DB entities should have `created`, `updated`, `deleted` timestamps
-- DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
-- products, bags and orders should be implemented as state machines with appropriate states
-    - https://pypi.org/project/python-statemachine/ seems like a good candidate to explore for this (it has django integration) and diagrams can be generated
+- [x] for adequate DB entities -  have `created`, `updated`, `deleted` timestamps. all dates/timestamps should be in UTC timezone
 - [x] authentication should be based on "blackbox" tokens and acquired via oauth2 password flow
-- tags can be searched and managed on their own API domain - `/api/tags` - but also listed, associated and dissociated as a nested representation of products - `/api/product/<id>/tags`
+- [ ] source events from the DB to simplify complexity (psql -> debezium server -> redis -> celery worker/tasks) - https://debezium.io/documentation/reference/3.0/architecture.html#_debezium_server
+- [ ] APIs documented and have "contract" testing
+- [ ] separate test runs for unit and integration/api tests. The latter are slower and should be run separately
+- [x] DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
+- [ ] products, bags and orders are implemented as state machines with appropriate states
+    - https://pypi.org/project/python-statemachine/ seems like a good candidate to explore for this (it has django integration) and diagrams can be generated
+
 
 Optional features:
 - run the app in a docker-compose env
 - run type analysis - https://www.mypy-lang.org/. Would likely be better to upgrade to python 3.11 beforehand because it supports better typing
 - transition code to async where applicable
-- the change in the DB caused by placing an order should emit an event to a message/event stream (e.g. kafka)
 - place product information (name, description, stock and tags) in an elasticsearch index and use it to list & search
 - social features such as "follow user"
 

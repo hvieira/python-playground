@@ -2,6 +2,7 @@ version: '3'
 services:
   db:
     image: "postgres:16"
+    command: "-c wal_level=logical -c max_wal_senders=5 -c max_replication_slots=5"
     environment:
       - POSTGRES_USER=store
       - POSTGRES_PASSWORD=root
@@ -10,6 +11,33 @@ services:
       - 5432:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  redis-cache:
+    image: "redis:7.4.2"
+    environment:
+      - REDIS_PORT=6379
+    ports:
+      - 6379:6379
+
+  debezium:
+      image: "debezium/server:3.0.0.Final"
+      depends_on:
+        - db
+        - redis-cache
+      environment:
+        # source config
+        - DEBEZIUM_SOURCE_CONNECTOR_CLASS=io.debezium.connector.postgresql.PostgresConnector
+        - DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME=data/offsets.dat
+        - DEBEZIUM_SOURCE_DATABASE_HOSTNAME=db
+        - DEBEZIUM_SOURCE_DATABASE_PORT=5432
+        - DEBEZIUM_SOURCE_DATABASE_USER=store
+        - DEBEZIUM_SOURCE_DATABASE_PASSWORD=root
+        - DEBEZIUM_SOURCE_DATABASE_DBNAME=store
+        - DEBEZIUM_SOURCE_PLUGIN_NAME=pgoutput
+        - DEBEZIUM_SOURCE_TOPIC_PREFIX=store
+        # sink config
+        - DEBEZIUM_SINK_TYPE=redis
+        - DEBEZIUM_SINK_REDIS_ADDRESS=redis-cache:6379
 
 volumes:
   pgdata:
