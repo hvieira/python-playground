@@ -127,6 +127,13 @@ class Order(BaseEntity):
         through_fields=("order", "product"),
     )
 
+    @transition(field=state, source=States.PENDING, target=States.CANCELLED)
+    def cancel(self):
+        """
+        Cancels an order
+        """
+        return
+
 
 class OrderLineItem(models.Model):
     class Meta:
