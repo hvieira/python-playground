@@ -12,6 +12,8 @@ ENV  POETRY_VERSION=1.8.5 \
   VENV_PATH="/opt/pysetup/.venv"
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
+# TODO these packages might be necessary to pull and build psycog2 dependencies
+# but not necessary for runtime image
 RUN apt-get update \
     && apt-get -y install libpq-dev gcc
  

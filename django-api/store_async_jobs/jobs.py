@@ -48,7 +48,7 @@ if __name__ == "__main__":
     confirmation_max_duration_seconds = os.getenv(
         "JOB_ORDER_CANCEL_PENDING_ORDERS_TIME_SECONDS", 30
     )
-    interval_seconds = os.getenv("JOB_ORDER_CANCEL_PENDING_ORDERS", 5)
+    interval_seconds = os.getenv("JOB_ORDER_CANCEL_PENDING_ORDERS_INTERVAL_SECONDS", 5)
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_api.settings")
 

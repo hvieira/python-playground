@@ -5,6 +5,18 @@ services:
     build: .
     ports:
       - 8000:8000
+    environment:
+      - DB_HOST=db
+
+  jobs:
+    profiles: [service]
+    build: .
+    # TODO add the log level arg to the script
+    command: python store_async_jobs/jobs.py --log-level=DEBUG 
+    environment:
+      # needed to find the sibling modules when running python
+      - PYTHONPATH=/app
+      - DB_HOST=db
 
   db:
     image: "postgres:16"
