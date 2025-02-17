@@ -6,6 +6,8 @@ from apscheduler.schedulers.background import BlockingScheduler
 from django.db import transaction
 
 LOGGER = logging.getLogger(__name__)
+log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+LOGGER.setLevel(log_level)
 
 
 def cancel_elapsed_unconfirmed_orders(confirmation_max_duration_seconds: int):
@@ -16,6 +18,10 @@ def cancel_elapsed_unconfirmed_orders(confirmation_max_duration_seconds: int):
     now_utc = datetime.now(timezone.utc)
     elasped_time = now_utc - timedelta(seconds=confirmation_max_duration_seconds)
     orders_to_cancel = (
+        # TODO this query requires an index on state column in the DB
+        # given that there's no particular interesting index type in PSQL for
+        # low cardinality values, a B-tree index on `created` column will be useful
+        # since we are doing a range comparison
         Order.objects.filter(state=Order.States.PENDING)
         .filter(created__gt=elasped_time)
         .select_for_update()
@@ -44,7 +50,6 @@ def start(confirmation_max_duration_seconds: int, interval_seconds: int):
 
 
 if __name__ == "__main__":
-
     confirmation_max_duration_seconds = os.getenv(
         "JOB_ORDER_CANCEL_PENDING_ORDERS_TIME_SECONDS", 30
     )
