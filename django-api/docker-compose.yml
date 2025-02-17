@@ -14,9 +14,15 @@ services:
     # TODO add the log level arg to the script
     command: python store_async_jobs/jobs.py --log-level=DEBUG 
     environment:
-      # needed to find the sibling modules when running python
+      # needed to find the sibling modules when running python. alternative would be to install the modules in the container
       - PYTHONPATH=/app
       - DB_HOST=db
+    depends_on:
+      - db
+      - redis-cache
+    # this component of the "architecture" should work as a daemon
+    restart: on-failure
+
 
   db:
     image: "postgres:16"
