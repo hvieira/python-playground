@@ -114,6 +114,9 @@ class ProductStock(models.Model):
 
 class Order(BaseEntity):
 
+    class Meta:
+        indexes = [models.Index(fields=["created"], name="store_api_order_created")]
+
     class States(models.TextChoices):
         PENDING = "PENDING", ("Pending")
         SHIPPED = "SHIPPED", ("Shipped")
