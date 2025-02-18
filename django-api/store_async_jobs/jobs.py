@@ -16,14 +16,13 @@ def cancel_elapsed_unconfirmed_orders(confirmation_max_duration_seconds: int):
 
     LOGGER.debug("Querying for orders to be cancelled...")
     now_utc = datetime.now(timezone.utc)
-    elasped_time = now_utc - timedelta(seconds=confirmation_max_duration_seconds)
+    to_confirm_threshold_time = now_utc - timedelta(
+        seconds=confirmation_max_duration_seconds + 1
+    )
+    print(f"threshold is {to_confirm_threshold_time}")
     orders_to_cancel = (
-        # TODO this query requires an index on state column in the DB
-        # given that there's no particular interesting index type in PSQL for
-        # low cardinality values, a B-tree index on `created` column will be useful
-        # since we are doing a range comparison
         Order.objects.filter(state=Order.States.PENDING)
-        .filter(created__gt=elasped_time)
+        .filter(created__lte=to_confirm_threshold_time)
         .select_for_update()
     )
 
