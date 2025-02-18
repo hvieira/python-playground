@@ -232,9 +232,14 @@ class TestOrder:
             response.json()["error"]
             == "requested products and/or stock variants that do not exist"
         )
-        assert set(response.json()["detail"]) == set(
-            [str(non_existing_product_id1), str(non_existing_product_id2)]
-        )
+
+        expected_errors = [
+            [str(non_existing_product_id1), "default"],
+            [str(non_existing_product_id2), "default"],
+        ]
+        assert len(response.json()["detail"]) == len(expected_errors)
+        for err in expected_errors:
+            assert err in response.json()["detail"]
 
         # verify no order was made
         assert (
@@ -282,7 +287,7 @@ class TestOrder:
         assert response.status_code == 400
         assert response.json() == {
             "error": "requested products and/or stock variants that do not exist",
-            "detail": [str(product.id)],
+            "detail": [[str(product.id), "XXXXXXXL"]],
         }
 
         # verify no order was made
@@ -332,7 +337,7 @@ class TestOrder:
         assert response.status_code == 400
         assert response.json() == {
             "error": "requested products and/or stock variants that do not exist",
-            "detail": [str(product.id)],
+            "detail": [[str(product.id), "default"]],
         }
 
         # verify no order was made
@@ -343,5 +348,64 @@ class TestOrder:
             == 0
         )
 
+    def test_orders_can_have_multiple_variants_of_the_same_product(
+        self,
+        api_client: Client,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "easyPass")
+        buyer_user = default_user
 
-# TODO make an order with different variants
+        product = product_factory.create(
+            owner=seller_user,
+            title="t-shirt",
+            description="cheap and amazing t-shirts",
+            price=1003,
+            available_stock={"x": 2, "m": 5, "s": 3, "ss": 1},
+        )
+
+        request_payload = {
+            "products": [
+                {"id": str(product.id), "variant": "x", "quantity": 1},
+                {"id": str(product.id), "variant": "m", "quantity": 2},
+                {"id": str(product.id), "variant": "ss", "quantity": 1},
+            ]
+        }
+
+        response = api_client.post(
+            "http://testserver/api/orders/",
+            content_type="application/json",
+            data=request_payload,
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
+        )
+        assert response.status_code == 201
+
+        order_id = uuid.UUID(response.json()["id"])
+        order = Order.objects.get(id=order_id)
+        assert order.state == "PENDING"
+        assert order.customer_id == buyer_user.id
+
+        order_line_items = list(
+            OrderLineItem.objects.filter(order_id=order_id)
+            .filter(product_id=product.id)
+            .all()
+        )
+        assert order_line_items == [
+            OrderLineItem(order=order, product=product, variant="x", quantity=1),
+            OrderLineItem(order=order, product=product, variant="m", quantity=2),
+            OrderLineItem(order=order, product=product, variant="ss", quantity=1),
+        ]
+
+        product.refresh_from_db()
+        assert product.state == Product.STATE_AVAILABLE
+        assert list(product.stock.values("product_id", "variant", "available")) == [
+            {"product_id": product.id, "variant": "x", "available": 1},
+            {"product_id": product.id, "variant": "m", "available": 3},
+            {"product_id": product.id, "variant": "s", "available": 3},
+            {"product_id": product.id, "variant": "ss", "available": 0},
+        ]

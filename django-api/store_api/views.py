@@ -294,8 +294,9 @@ class OrderViewSet(GenericViewSet):
     def create(self, request: Request):
         serializer = CreateOrderRequestSerializer(data=request.data)
         if serializer.is_valid():
-            requested_products_by_id = {
-                p["id"]: p for p in serializer.validated_data["products"]
+            requested_quantity_by_product_id_and_variant = {
+                (p["id"], p["variant"]): p["quantity"]
+                for p in serializer.validated_data["products"]
             }
 
             stock_queryset = (
@@ -319,9 +320,14 @@ class OrderViewSet(GenericViewSet):
                     serializer.validated_data["products"]
                 ):
                     missing_product_ids = set(
-                        requested_products_by_id.keys()
+                        requested_quantity_by_product_id_and_variant.keys()
                     ).difference(
-                        set([ps.product.id for ps in requested_products_stock])
+                        set(
+                            [
+                                (ps.product.id, ps.variant)
+                                for ps in requested_products_stock
+                            ]
+                        )
                     )
                     return Response(
                         {
@@ -332,9 +338,9 @@ class OrderViewSet(GenericViewSet):
                     )
 
                 for product_stock in requested_products_stock:
-                    requested_quantity = requested_products_by_id[
-                        product_stock.product.id
-                    ]["quantity"]
+                    requested_quantity = requested_quantity_by_product_id_and_variant[
+                        (product_stock.product.id, product_stock.variant)
+                    ]
 
                     product_stock.available -= requested_quantity
 

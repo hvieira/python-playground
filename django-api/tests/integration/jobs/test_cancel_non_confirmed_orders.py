@@ -12,7 +12,7 @@ TIME_TO_CANCEL_PENDING_ORDERS_SECONDS = 5
 @pytest.mark.django_db()
 class TestCancelNonConfirmedOrders:
 
-    def test_unconfirmed_orders_that_have_not_elapsed_are_not_cancelled(
+    def test_pending_orders_that_are_unconfirmed_over_the_time_threshold_get_cancelled(
         self,
         default_user: User,
         user_factory: UserFactory,
