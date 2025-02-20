@@ -7,11 +7,13 @@ services:
       - 8000:8000
     environment:
       - DB_HOST=db
+    depends_on:
+      - db
+      - redis-cache
 
   jobs:
     profiles: [service]
     build: .
-    # TODO add the log level arg to the script
     command: python store_async_jobs/jobs.py --log-level=DEBUG 
     environment:
       # needed to find the sibling modules when running python. alternative would be to install the modules in the container
