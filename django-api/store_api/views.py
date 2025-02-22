@@ -291,7 +291,11 @@ class OrderViewSet(ModelViewSet):
 
     order_owner_retriever: Callable[[Order], User] = lambda order: order.customer
 
-    queryset = Order.objects.all().filter(deleted__isnull=True)
+    queryset = (
+        Order.objects.all()
+        .filter(deleted__isnull=True)
+        .prefetch_related("orderlineitem_set")
+    )
 
     serializer_class = OrderSerializer
 
