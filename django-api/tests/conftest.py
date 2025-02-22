@@ -5,7 +5,7 @@ import pytest
 from django.test import Client
 from oauth2_provider.models import AccessToken, Application
 
-from store_api.models import Product, ProductStock, Tag, User
+from store_api.models import Order, OrderLineItem, Product, ProductStock, Tag, User
 
 logger = logging.getLogger(__name__)
 
@@ -219,6 +219,34 @@ class TagFactory:
         return Tag.objects.create(name=name, description=description)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def tag_factory():
     return TagFactory()
+
+
+class OrderFactory:
+    def create(
+        self,
+        customer: User,
+        products_variants_and_quantities: list[tuple[Product, str, int]],
+        state=Order.States.PENDING,
+    ) -> Order:
+        order = Order.objects.create(
+            state=state,
+            customer=customer,
+        )
+
+        for item in products_variants_and_quantities:
+            OrderLineItem.objects.create(
+                order=order,
+                product=item[0],
+                variant=item[1],
+                quantity=item[2],
+            )
+
+        return order
+
+
+@pytest.fixture(scope="session")
+def order_factory():
+    return OrderFactory()

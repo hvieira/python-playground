@@ -122,6 +122,7 @@ class Order(BaseEntity):
         CONFIRMED = "CONFIRMED", ("Confirmed")
         PAID = "PAID", ("Paid")
         SHIPPED = "SHIPPED", ("Shipped")
+        # maybe cancelled for cancelled orders by the user | REVERTED for automatic order cancelling
         CANCELLED = "CANCELLED", ("Cancelled")
 
     state = FSMField(null=False, choices=States, default=States.PENDING)
@@ -137,6 +138,7 @@ class Order(BaseEntity):
         """
         Cancels an order
         """
+        # TODO stock amounts should be released
         return
 
 

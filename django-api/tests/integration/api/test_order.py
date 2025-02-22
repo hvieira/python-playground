@@ -6,7 +6,7 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken
 
 from store_api.models import Order, OrderLineItem, Product, User
-from tests.conftest import ProductFactory, UserFactory
+from tests.conftest import OrderFactory, ProductFactory, UserFactory
 
 
 @pytest.mark.django_db()
@@ -408,4 +408,97 @@ class TestOrder:
             {"product_id": product.id, "variant": "m", "available": 3},
             {"product_id": product.id, "variant": "s", "available": 3},
             {"product_id": product.id, "variant": "ss", "available": 0},
+        ]
+
+    def test_users_can_fetch_own_orders(
+        self,
+        api_client: Client,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+        order_factory: OrderFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "easyPass")
+        buyer_user = default_user
+
+        product = product_factory.create(
+            owner=seller_user,
+            title="t-shirt",
+            description="cheap and amazing t-shirts",
+            price=1003,
+            available_stock={"x": 500, "m": 500, "s": 500, "ss": 500},
+        )
+
+        # TODO add cancelled order - should they be seen by the users? check state names in order model first
+        pending_order = order_factory.create(
+            buyer_user, [(product, "x", 1)], state=Order.States.PENDING
+        )
+
+        confirmed_order = order_factory.create(
+            buyer_user, [(product, "m", 2)], state=Order.States.CONFIRMED
+        )
+
+        paid_order = order_factory.create(
+            buyer_user, [(product, "s", 2)], state=Order.States.PAID
+        )
+
+        shipped_order = order_factory.create(
+            buyer_user, [(product, "ss", 1)], state=Order.States.SHIPPED
+        )
+
+        response = api_client.get(
+            "http://testserver/api/orders/",
+            content_type="application/json",
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
+        )
+        assert response.status_code == 200
+
+        assert response.json() == [
+            {
+                "id": str(pending_order.id),
+                "state": "PENDING",
+                "order_line_items": [
+                    {
+                        "product_id": str(product.id),
+                        "quantity": 1,
+                        "variant": "x",
+                    }
+                ],
+            },
+            {
+                "id": str(confirmed_order.id),
+                "state": "CONFIRMED",
+                "order_line_items": [
+                    {
+                        "product_id": str(product.id),
+                        "quantity": 2,
+                        "variant": "m",
+                    }
+                ],
+            },
+            {
+                "id": str(paid_order.id),
+                "state": "PAID",
+                "order_line_items": [
+                    {
+                        "product_id": str(product.id),
+                        "quantity": 2,
+                        "variant": "s",
+                    }
+                ],
+            },
+            {
+                "id": str(shipped_order.id),
+                "state": "SHIPPED",
+                "order_line_items": [
+                    {
+                        "product_id": str(product.id),
+                        "quantity": 1,
+                        "variant": "ss",
+                    }
+                ],
+            },
         ]

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from store_api.models import Product, Tag, User
+from store_api.models import Order, OrderLineItem, Product, Tag, User
 
 # TODO these are constants OR configurables that should be in settings.py for example
 name_length = 50
@@ -108,3 +108,27 @@ class CreateOrderRequestSerializer(serializers.Serializer):
 
 class CreateOrderResponseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+
+
+class OrderLineItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderLineItem
+        fields = [
+            "product_id",
+            "variant",
+            "quantity",
+        ]
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "state",
+            "order_line_items",
+        ]
+
+    order_line_items = OrderLineItemSerializer(
+        many=True, read_only=True, source="orderlineitem_set"
+    )

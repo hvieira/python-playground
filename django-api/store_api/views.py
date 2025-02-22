@@ -1,5 +1,6 @@
 from datetime import datetime
 from functools import reduce
+from typing import Any, Callable
 from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
@@ -8,7 +9,7 @@ from django.db.models import Q
 from oauth2_provider.contrib.rest_framework import permissions as token_permissions
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import BasePermission, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -19,6 +20,7 @@ from store_api.serializers import (
     CreateOrderResponseSerializer,
     CreateProductRequestSerializer,
     CreateUserRequestSerializer,
+    OrderSerializer,
     ProductListSerializer,
     ProductSerializer,
     TagListSerializer,
@@ -274,11 +276,25 @@ class TagViewSet(ModelViewSet):
         return Response(serializer.data)
 
 
-class OrderViewSet(GenericViewSet):
+class IsOwner(BasePermission):
+    def __init__(self, retrieve_object_owner: Callable[[Any], User]):
+        self.retrieve_object_owner = retrieve_object_owner
+
+    def has_object_permission(self, request, view, obj: Order):
+        object_owner = self.retrieve_object_owner(obj)
+        return object_owner == request.user
+
+
+class OrderViewSet(ModelViewSet):
     lookup_field = "id"
     lookup_value_converter = "uuid"
 
+    order_owner_retriever: Callable[[Order], User] = lambda order: order.customer
+
     queryset = Order.objects.all().filter(deleted__isnull=True)
+
+    serializer_class = OrderSerializer
+
     required_alternate_scopes = {
         "GET": [["read"]],
         "POST": [["write"]],
@@ -286,10 +302,16 @@ class OrderViewSet(GenericViewSet):
 
     def get_permissions(self):
         match self.action:
+            case "retrieve" | "list":
+                permissions = [
+                    token_permissions.TokenMatchesOASRequirements(),
+                    IsOwner(self.order_owner_retriever),
+                ]
             case _:
-                permission_classes = [token_permissions.TokenMatchesOASRequirements]
+                permissions = [token_permissions.TokenMatchesOASRequirements()]
 
-        return [permission() for permission in permission_classes]
+        return permissions
+        # return [permission() for permission in permission_classes]
 
     def create(self, request: Request):
         serializer = CreateOrderRequestSerializer(data=request.data)
