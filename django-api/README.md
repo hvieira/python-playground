@@ -35,11 +35,11 @@ Features:
 Technical features:
 - [x] backing postgres DB
 - [x] all entities should have UUID for ids
-- expired user API tokens should be removed (check if lib does it)
+- [ ] expired user API tokens should be removed (check if this automated with `django-oauth-toolkit`)
 - [x] static analysis of code - isort, black, ...
 - [x] for adequate DB entities -  have `created`, `updated`, `deleted` timestamps. all dates/timestamps should be in UTC timezone
 - [x] authentication should be based on "blackbox" tokens and acquired via oauth2 password flow
-- [ ] source events from the DB to simplify complexity (psql -> debezium server -> redis -> celery worker/tasks) - https://debezium.io/documentation/reference/3.0/architecture.html#_debezium_server
+- [WIP] source events from the DB to simplify complexity (psql -> debezium server -> redis -> ?celery? worker/tasks) - https://debezium.io/documentation/reference/3.0/architecture.html#_debezium_server
 - [ ] APIs documented and have "contract" testing
 - [ ] separate test runs for unit and integration/api tests. The latter are slower and should be run separately
 - [x] DB entities should not be hard deleted from the DB, instead the `deleted` timestamps should be set
