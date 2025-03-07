@@ -17,14 +17,15 @@ def cancel_elapsed_unconfirmed_orders(confirmation_max_duration_seconds: int):
         seconds=confirmation_max_duration_seconds + 1
     )
     orders_to_cancel = (
-        Order.objects.filter(state=Order.States.PENDING)
+        Order.objects.prefetch_related("orderlineitem_set")
+        .filter(state=Order.States.PENDING)
         .filter(created__lte=to_confirm_threshold_time)
         .select_for_update()
     )
 
     with transaction.atomic():
         for order in orders_to_cancel:
-            order.cancel()
+            order.revert()
             order.save()
             logging.info(f"cancelled order {order.id}")
 

@@ -21,12 +21,22 @@ class TestCancelNonConfirmedOrders:
         now = datetime.now(timezone.utc)
         elapsed = now - timedelta(seconds=TIME_TO_CANCEL_PENDING_ORDERS_SECONDS)
         seller = user_factory.create("test@test.com", "test_seller", "Passwd")
-        product = product_factory.create(seller, "some product", "description", 100)
-        order = Order.objects.create(
+        product = product_factory.create(
+            seller,
+            "some product",
+            "description",
+            100,
+            available_stock={"default": 7, "red": 11},
+        )
+
+        pending_order = Order.objects.create(
             state=Order.States.PENDING, customer=default_user, created=elapsed
         )
         OrderLineItem.objects.create(
-            order=order, product=product, variant="default", quantity=1
+            order=pending_order, product=product, variant="default", quantity=3
+        )
+        OrderLineItem.objects.create(
+            order=pending_order, product=product, variant="red", quantity=4
         )
 
         very_recent_pending_order = Order.objects.create(
@@ -62,8 +72,8 @@ class TestCancelNonConfirmedOrders:
 
         cancel_elapsed_unconfirmed_orders(TIME_TO_CANCEL_PENDING_ORDERS_SECONDS)
 
-        order.refresh_from_db()
-        assert order.state == Order.States.CANCELLED
+        pending_order.refresh_from_db()
+        assert pending_order.state == Order.States.REVERTED
 
         # confirm that other orders were not affected
         very_recent_pending_order.refresh_from_db()
@@ -77,3 +87,12 @@ class TestCancelNonConfirmedOrders:
 
         shipped_old_order.refresh_from_db()
         assert shipped_old_order.state == Order.States.SHIPPED
+
+        # confirm that quantities were restored
+        product.refresh_from_db()
+        assert list(
+            product.stock.all().order_by("variant").values("variant", "available")
+        ) == [
+            {"variant": "default", "available": 10},
+            {"variant": "red", "available": 15},
+        ]

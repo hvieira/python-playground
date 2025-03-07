@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django_fsm import FSMField, transition
 
@@ -124,6 +124,7 @@ class Order(BaseEntity):
         SHIPPED = "SHIPPED", ("Shipped")
         # maybe cancelled for cancelled orders by the user | REVERTED for automatic order cancelling
         CANCELLED = "CANCELLED", ("Cancelled")
+        REVERTED = "REVERTED", ("Reverted")
 
     state = FSMField(null=False, choices=States, default=States.PENDING)
     customer = models.ForeignKey(User, on_delete=models.DO_NOTHING)
@@ -133,13 +134,16 @@ class Order(BaseEntity):
         through_fields=("order", "product"),
     )
 
-    @transition(field=state, source=States.PENDING, target=States.CANCELLED)
-    def cancel(self):
+    @transition(field=state, source=States.PENDING, target=States.REVERTED)
+    def revert(self):
         """
-        Cancels an order
+        reverts an order. restores allocated stock to the respective product variants
         """
-        # TODO stock amounts should be released
-        return
+        with transaction.atomic():
+            for order_line_item in self.orderlineitem_set.all():
+                ProductStock.objects.filter(
+                    product=order_line_item.product, variant=order_line_item.variant
+                ).update(available=models.F("available") + order_line_item.quantity)
 
 
 class OrderLineItem(models.Model):
