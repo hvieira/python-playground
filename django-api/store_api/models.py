@@ -145,6 +145,14 @@ class Order(BaseEntity):
                     product=order_line_item.product, variant=order_line_item.variant
                 ).update(available=models.F("available") + order_line_item.quantity)
 
+    @transition(field=state, source=States.PENDING, target=States.CONFIRMED)
+    def confirm(self):
+        """
+        Confirms order
+        """
+        # this is where additional payment, shipping, etc info would be saved
+        pass
+
 
 class OrderLineItem(models.Model):
     class Meta:

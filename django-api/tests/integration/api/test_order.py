@@ -502,3 +502,64 @@ class TestOrder:
                 ],
             },
         ]
+
+    def test_orders_need_to_be_confirmed_from_pending(
+        self,
+        api_client: Client,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+        order_factory: OrderFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "easyPass")
+        buyer_user = default_user
+
+        product = product_factory.create(
+            owner=seller_user,
+            title="t-shirt",
+            description="cheap and amazing t-shirts",
+            price=1003,
+            available_stock={"x": 500, "m": 500, "s": 500, "ss": 500},
+        )
+
+        pending_order = order_factory.create(
+            buyer_user, [(product, "m", 1)], state=Order.States.PENDING
+        )
+
+        response = api_client.post(
+            f"http://testserver/api/orders/{pending_order.id}/confirm/",
+            content_type="application/json",
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {
+            "id": str(pending_order.id),
+            "state": "CONFIRMED",
+            "order_line_items": [
+                {
+                    "product_id": str(product.id),
+                    "quantity": 1,
+                    "variant": "m",
+                }
+            ],
+        }
+
+    def test_confirming_orders_that_do_not_exist_results_in_not_found_error(
+        self,
+        api_client: Client,
+        default_user_long_lived_access_token: AccessToken,
+    ):
+        response = api_client.post(
+            f"http://testserver/api/orders/{uuid.uuid4()}/confirm/",
+            content_type="application/json",
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
+        )
+        assert response.status_code == 404
+
+    # TODO confirming a CONFIRMED order is a NO-OP (or idempotent)
+    # TODO confirming a order that is not in PENDING or CONFIRMED is a bad request

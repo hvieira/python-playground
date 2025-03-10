@@ -398,6 +398,24 @@ class OrderViewSet(ModelViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @action(
+        url_path="confirm",
+        detail=True,
+        permission_classes=[token_permissions.TokenMatchesOASRequirements],
+        methods=["post"],
+    )
+    def confirm_order(self, request: Request, id: UUID = None):
+        try:
+            order = self.queryset.get(id=id)
+            order.confirm()
+            order.save()
+
+            serializer = OrderSerializer(order)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Order.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 # TODO probably can be integrated into a mixin or something to allow this paging to be re-used in all views and with less code
 # perhaps based on this https://www.django-rest-framework.org/api-guide/pagination/#pagination
