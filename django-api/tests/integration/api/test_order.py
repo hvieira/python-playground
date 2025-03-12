@@ -561,5 +561,95 @@ class TestOrder:
         )
         assert response.status_code == 404
 
-    # TODO confirming a CONFIRMED order is a NO-OP (or idempotent)
-    # TODO confirming a order that is not in PENDING or CONFIRMED is a bad request
+    def test_confirming_a_confirmed_order_is_a_NOOP(
+        self,
+        api_client: Client,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+        order_factory: OrderFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "easyPass")
+        buyer_user = default_user
+
+        product = product_factory.create(
+            owner=seller_user,
+            title="t-shirt",
+            description="cheap and amazing t-shirts",
+            price=1003,
+            available_stock={"x": 500, "m": 500, "s": 500, "ss": 500},
+        )
+
+        order = order_factory.create(
+            buyer_user, [(product, "s", 2)], state=Order.States.CONFIRMED
+        )
+        original_update_time = order.updated
+
+        response = api_client.post(
+            f"http://testserver/api/orders/{order.id}/confirm/",
+            content_type="application/json",
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {
+            "id": str(order.id),
+            "state": "CONFIRMED",
+            "order_line_items": [
+                {
+                    "product_id": str(product.id),
+                    "quantity": 2,
+                    "variant": "s",
+                }
+            ],
+        }
+        order.refresh_from_db()
+        assert order.updated == original_update_time
+
+    @pytest.mark.parametrize(
+        "original_state",
+        [
+            Order.States.CANCELLED,
+            Order.States.PAID,
+            Order.States.REVERTED,
+            Order.States.SHIPPED,
+        ],
+    )
+    def test_confirming_orders_which_are_not_pending_or_confirmed_is_a_bad_request(
+        self,
+        original_state: str,
+        api_client: Client,
+        default_user: User,
+        default_user_long_lived_access_token: AccessToken,
+        user_factory: UserFactory,
+        product_factory: ProductFactory,
+        order_factory: OrderFactory,
+    ):
+        seller_user = user_factory.create("user1@user1.com", "user1", "easyPass")
+        buyer_user = default_user
+
+        product = product_factory.create(
+            owner=seller_user,
+            title="t-shirt",
+            description="cheap and amazing t-shirts",
+            price=1003,
+            available_stock={"x": 500, "m": 500, "s": 500, "ss": 500},
+        )
+
+        order = order_factory.create(
+            buyer_user, [(product, "s", 2)], state=original_state
+        )
+        original_update_time = order.updated
+
+        response = api_client.post(
+            f"http://testserver/api/orders/{order.id}/confirm/",
+            content_type="application/json",
+            headers={
+                "Authorization": f"Bearer {default_user_long_lived_access_token.token}"
+            },
+        )
+        assert response.status_code == 400
+        order.refresh_from_db()
+        assert order.updated == original_update_time

@@ -3,6 +3,7 @@ from functools import reduce
 from typing import Any, Callable
 from uuid import UUID
 
+import django_fsm
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
 from django.db.models import Q
@@ -407,8 +408,12 @@ class OrderViewSet(ModelViewSet):
     def confirm_order(self, request: Request, id: UUID = None):
         try:
             order = self.queryset.get(id=id)
-            order.confirm()
-            order.save()
+            try:
+                order.confirm()
+                order.save()
+            except django_fsm.TransitionNotAllowed:
+                if order.state != Order.States.CONFIRMED:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
 
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_200_OK)
