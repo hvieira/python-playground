@@ -153,6 +153,14 @@ class Order(BaseEntity):
         # this is where additional payment, shipping, etc info would be saved
         pass
 
+    @transition(field=state, source=States.CONFIRMED, target=States.PAID)
+    def process_payment(self):
+        """
+        Confirms order
+        """
+        # this is where payment would be processed
+        pass
+
 
 class OrderLineItem(models.Model):
     class Meta:

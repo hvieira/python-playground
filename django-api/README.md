@@ -24,7 +24,7 @@ Features:
     - [x] see other users store (any user products)
     - [x] - search for products (via title, description and tags) - newest first
     - [x] can buy products/place an order (from any user)
-    - [ ] orders follow state: `PENDING_CONFIRMATION` (requires the client to confirm the order within a set time frame (e.g. 1-5 min) with payment details. Otherwise it is reverted to `NOT_CONFIRMED` state) -> `CONFIRMED`(the order is confirmed and (pseudo)payment should be processed) -> `ACCEPTED`
+    - [ ] orders follow state: `PENDING_CONFIRMATION` (requires the client to confirm the order within a set time frame (e.g. 1-5 min) with payment details. Otherwise it is reverted to `NOT_CONFIRMED` state) -> `CONFIRMED`(the order is confirmed and (pseudo)payment should be processed) -> `PAID`
     - [ ] put products into a bag
     - [ ] create order from a bag
     - [x] search for existing tags (this would be for auto-complete/suggestion of tags in a frontend)
