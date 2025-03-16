@@ -14,10 +14,16 @@ class OrderEventConsumer(RedisDebeziumStreamConsumer):
         match (before_state, after_state):
             case (Order.States.PENDING, Order.States.CONFIRMED):
                 order_id = uuid.UUID(event.after["id"])
-                order = Order.objects.select_for_update().get(id=order_id)
-
-                order.process_payment()
-                order.save()
+                try:
+                    order = Order.objects.select_for_update().get(id=order_id)
+                    order.process_payment()
+                    order.save()
+                except Order.DoesNotExist:
+                    self.logger.warning(
+                        "Order %s from event %s was not found. Ignoring...",
+                        str(order_id),
+                        event.id,
+                    )
 
             # TODO
             # case (Order.States.PAID, Order.States.SHIPPED):

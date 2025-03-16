@@ -38,7 +38,7 @@ class Consumer:
         stream_name: str,
         consumer_group_name: str,
         consumer_name: str,
-        logger=logging.Logger,
+        logger: logging.Logger = None,
         last_id: str = "$",
     ):
         self.redis_host_name = redis_host_name

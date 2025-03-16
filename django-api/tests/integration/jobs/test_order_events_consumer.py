@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 
 from store_api.models import Order, User
@@ -107,3 +109,38 @@ class TestCancelNonConfirmedOrders:
 
         order.refresh_from_db()
         assert order.state == Order.States.PAID
+
+    def test_events_related_to_non_existing_orders_are_NOOP(
+        self,
+    ):
+        non_existing_order_id = uuid.uuid4()
+
+        redis_event_id = "1740218269024-0"
+
+        event = DebeziumRedisEvent(
+            id=redis_event_id,
+            before={
+                "id": str(non_existing_order_id),
+                "created": "2025-02-22T09:57:48.517360Z",
+                "updated": "2025-02-22T09:57:48.517831Z",
+                "deleted": None,
+                "state": "PENDING",
+                "customer_id": "7a000c94-6dcb-4d66-bb4f-58b61d2c5dcb",
+            },
+            after={
+                "id": str(non_existing_order_id),
+                "created": "2025-02-22T09:57:48.517360Z",
+                "updated": "2025-02-22T09:57:51.510003Z",
+                "deleted": None,
+                "state": "CONFIRMED",
+                "customer_id": "7a000c94-6dcb-4d66-bb4f-58b61d2c5dcb",
+            },
+        )
+
+        consumer = OrderEventConsumer(None, None, None, None)
+
+        event_id = consumer.process_change_event(event)
+
+        assert event_id == redis_event_id
+
+        assert Order.objects.filter(id=non_existing_order_id).count() == 0
