@@ -1,13 +1,16 @@
 import os
 import uuid
 
-from store_api.models import Order
+import redis
+
 from store_async_jobs.consumer import DebeziumRedisEvent, RedisDebeziumStreamConsumer
 
 
 class OrderEventConsumer(RedisDebeziumStreamConsumer):
 
     def process_change_event(self, event: DebeziumRedisEvent) -> str:
+        from store_api.models import Order
+
         before_state = event.before["state"] if event.before else None
         after_state = event.after["state"] if event.after else None
 
@@ -36,9 +39,16 @@ class OrderEventConsumer(RedisDebeziumStreamConsumer):
 
 
 def start():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_api.settings")
+    import django
+
+    django.setup()
+
     redis_host = os.environ["REDIS_HOST"]
+    redis_client = redis.Redis(redis_host, decode_responses=True, protocol=3)
+
     consumer = OrderEventConsumer(
-        redis_host_name=redis_host,
+        redis_client=redis_client,
         stream_name="store.public.store_api_order",
         consumer_group_name="store_consumer_order",
         # this would be based on HOST or POD NAME or something else to be unique

@@ -65,8 +65,34 @@ class Consumer:
                 self.logger.error("Failed to start consumer")
                 raise e
 
+    # TODO could be static
+    def get_event_from_redis_decoded_format(self, decoded_redis_stream_entry):
+        return RedisStreamEvent(
+            decoded_redis_stream_entry[0], decoded_redis_stream_entry[1]
+        )
+
     def read_events(self, event_count: int = 10) -> list[RedisStreamEvent]:
         # TODO read https://redis.io/docs/latest/develop/data-types/streams/ and understand how to deal with pending messages, claim and autoclaim
+        events_to_process = []
+
+        # check if there are idle messages that need to be claimed
+        # this could potentially be done in a separate process
+        claim_result = self.redis_client.xautoclaim(
+            self.stream_name,
+            self.consumer_group_name,
+            self.consumer_name,
+            60 * 1000,
+            count=event_count,
+        )
+
+        # TODO improve handling of priorities - there is a lot of duplicated code in this function
+
+        if len(claim_result[1]) > 0:
+            for raw_event in claim_result[1]:
+                events_to_process.append(
+                    self.get_event_from_redis_decoded_format(raw_event)
+                )
+            return events_to_process
 
         # see pending messages first
         pending_messages_response = self.redis_client.xreadgroup(
@@ -75,8 +101,7 @@ class Consumer:
             count=event_count,
             streams={self.stream_name: "0-0"},
         )
-        print(self.stream_name in pending_messages_response)
-        events_to_process = []
+
         if (
             self.stream_name in pending_messages_response
             and len(pending_messages_response[self.stream_name][0]) > 0
