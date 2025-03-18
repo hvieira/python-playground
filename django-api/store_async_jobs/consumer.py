@@ -108,15 +108,10 @@ class Consumer:
                 )
             return events_to_process
 
-        if self.check_pending_messages:
-            stream_cursor_id = "0-0"
-        else:
-            stream_cursor_id = ">"
+        stream_cursor_id = "0-0" if self.check_pending_messages else ">"
 
         response = self.read_from_consumer_group(stream_cursor_id, event_count)
         if self.stream_name in response:
-            # TODO understand why it returns a list with just a single element. Is this related to the protocol 3?
-            # TODO this is duplicated. TDD and improve upon it
             for raw_event in response[self.stream_name][0]:
                 events_to_process.append(
                     Consumer.get_event_from_redis_decoded_format(raw_event)
