@@ -79,6 +79,14 @@ class Consumer:
             decoded_redis_stream_entry[0], decoded_redis_stream_entry[1]
         )
 
+    def read_from_consumer_group(self, event_id_cursor: str, event_count: int):
+        return self.redis_client.xreadgroup(
+            groupname=self.consumer_group_name,
+            consumername=self.consumer_name,
+            count=event_count,
+            streams={self.stream_name: event_id_cursor},
+        )
+
     def read_events(self, event_count: int = 10) -> list[RedisStreamEvent]:
         # TODO read https://redis.io/docs/latest/develop/data-types/streams/ and understand how to deal with pending messages, claim and autoclaim
         events_to_process = []
@@ -93,8 +101,6 @@ class Consumer:
             count=event_count,
         )
 
-        # TODO improve handling of priorities - there is a lot of duplicated code in this function
-
         if len(claim_result[1]) > 0:
             for raw_event in claim_result[1]:
                 events_to_process.append(
@@ -103,39 +109,24 @@ class Consumer:
             return events_to_process
 
         if self.check_pending_messages:
-            pending_messages_response = self.redis_client.xreadgroup(
-                groupname=self.consumer_group_name,
-                consumername=self.consumer_name,
-                count=event_count,
-                streams={self.stream_name: "0-0"},
-            )
+            stream_cursor_id = "0-0"
+        else:
+            stream_cursor_id = ">"
 
-            if self.stream_name in pending_messages_response:
-                # TODO understand why it returns a list with just a single element. Is this related to the protocol 3?
-                # TODO this is duplicated. TDD and improve upon it
-                for raw_event in pending_messages_response[self.stream_name][0]:
-                    event = RedisStreamEvent(raw_event[0], raw_event[1])
-                    events_to_process.append(event)
+        response = self.read_from_consumer_group(stream_cursor_id, event_count)
+        if self.stream_name in response:
+            # TODO understand why it returns a list with just a single element. Is this related to the protocol 3?
+            # TODO this is duplicated. TDD and improve upon it
+            for raw_event in response[self.stream_name][0]:
+                events_to_process.append(
+                    Consumer.get_event_from_redis_decoded_format(raw_event)
+                )
 
-                if len(events_to_process) == 0:
-                    self.check_pending_messages = False
-
-                return events_to_process
-            else:
+            if len(events_to_process) == 0:
                 self.check_pending_messages = False
 
         else:
-            response = self.redis_client.xreadgroup(
-                groupname=self.consumer_group_name,
-                consumername=self.consumer_name,
-                count=event_count,
-                streams={self.stream_name: ">"},
-            )
-            if self.stream_name in response and len(response[self.stream_name][0]) > 0:
-                # TODO this is duplicated. TDD and improve upon it
-                for raw_event in response[self.stream_name][0]:
-                    event = RedisStreamEvent(raw_event[0], raw_event[1])
-                    events_to_process.append(event)
+            self.check_pending_messages = False
 
         return events_to_process
 
