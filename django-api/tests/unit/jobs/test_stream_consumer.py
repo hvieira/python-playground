@@ -83,8 +83,8 @@ class TestRedisStreamConsumer:
             self.DUMMY_REDIS_CONSUMER_NAME,
         )
         events = consumer.read_events()
+        assert list(events) == []
 
-        assert events == []
         assert len(mock_order_manager.mock_calls) > 0
         assert mock_order_manager.mock_calls == [
             call.xautoclaim(
@@ -134,8 +134,7 @@ class TestRedisStreamConsumer:
             self.DUMMY_REDIS_CONSUMER_NAME,
         )
         events = consumer.read_events()
-
-        assert events == [
+        assert list(events) == [
             RedisStreamEvent(
                 id="1740218269024-0",
                 payload={
@@ -166,10 +165,10 @@ class TestRedisStreamConsumer:
         )
 
         events = consumer.read_events()
-        assert events == []
+        assert list(events) == []
 
         events = consumer.read_events()
-        assert events == []
+        assert list(events) == []
 
         assert len(mock_order_manager.mock_calls) > 0
         assert mock_order_manager.mock_calls == [

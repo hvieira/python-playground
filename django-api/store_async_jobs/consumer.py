@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass
+from typing import Generator
 
 from redis import Redis
 from redis.exceptions import ResponseError
@@ -87,9 +88,10 @@ class Consumer:
             streams={self.stream_name: event_id_cursor},
         )
 
-    def read_events(self, event_count: int = 10) -> list[RedisStreamEvent]:
-        # TODO read https://redis.io/docs/latest/develop/data-types/streams/ and understand how to deal with pending messages, claim and autoclaim
-        events_to_process = []
+    def read_events(
+        self, event_count: int = 10
+    ) -> Generator[RedisStreamEvent, None, None]:
+        # https://redis.io/docs/latest/develop/data-types/streams/ to understand how to deal with pending messages, claim and autoclaim
 
         # check if there are idle messages that need to be claimed
         # this could potentially be done in a separate process
@@ -103,27 +105,24 @@ class Consumer:
 
         if len(claim_result[1]) > 0:
             for raw_event in claim_result[1]:
-                events_to_process.append(
-                    Consumer.get_event_from_redis_decoded_format(raw_event)
-                )
-            return events_to_process
+                yield Consumer.get_event_from_redis_decoded_format(raw_event)
+            # focus on idle pending messages first - do not process any other messages
+            return
 
         stream_cursor_id = "0-0" if self.check_pending_messages else ">"
 
         response = self.read_from_consumer_group(stream_cursor_id, event_count)
         if self.stream_name in response:
-            for raw_event in response[self.stream_name][0]:
-                events_to_process.append(
-                    Consumer.get_event_from_redis_decoded_format(raw_event)
-                )
-
-            if len(events_to_process) == 0:
+            if len(response[self.stream_name][0]) == 0:
                 self.check_pending_messages = False
+                return
+            else:
+                for raw_event in response[self.stream_name][0]:
+                    yield Consumer.get_event_from_redis_decoded_format(raw_event)
 
         else:
             self.check_pending_messages = False
-
-        return events_to_process
+            return
 
     def confirm_event_processed(self, event_id: str):
         # TODO sends an XACK command to redis to confirm event was processed for the specified consumer group
