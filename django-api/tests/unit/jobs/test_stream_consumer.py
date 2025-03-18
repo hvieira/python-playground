@@ -64,7 +64,7 @@ class TestRedisStreamConsumer:
             mkstream=True,
         )
 
-    def test_consumer_reads_from_stream_checks_idle_pending_messages_then_its_pending_messages_then_new_messages(
+    def test_consumer_reads_from_stream_checks_idle_pending_messages_then_its_pending_messages(
         self, redis_client
     ):
         mock_order_manager = Mock()
@@ -99,12 +99,6 @@ class TestRedisStreamConsumer:
                 consumername=self.DUMMY_REDIS_CONSUMER_NAME,
                 count=10,
                 streams={self.DUMMY_REDIS_STREAM_NAME: "0-0"},
-            ),
-            call.xreadgroup(
-                groupname=self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
-                consumername=self.DUMMY_REDIS_CONSUMER_NAME,
-                count=10,
-                streams={self.DUMMY_REDIS_STREAM_NAME: ">"},
             ),
         ]
 
@@ -151,3 +145,59 @@ class TestRedisStreamConsumer:
         ]
         xautoclaim_mock.assert_called_once()
         xreadgroup_mock.assert_not_called()
+
+    def test_consumer_starts_reading_new_messages_when_there_are_no_pending_messages(
+        self, redis_client
+    ):
+        mock_order_manager = Mock()
+        xautoclaim_mock = Mock(return_value=["0-0", [], []])
+        redis_client.xautoclaim = xautoclaim_mock
+        mock_order_manager.attach_mock(xautoclaim_mock, "xautoclaim")
+
+        xreadgroup_mock = Mock(return_value=[{}, {}])
+        redis_client.xreadgroup = xreadgroup_mock
+        mock_order_manager.attach_mock(xreadgroup_mock, "xreadgroup")
+
+        consumer = Consumer(
+            redis_client,
+            self.DUMMY_REDIS_STREAM_NAME,
+            self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+            self.DUMMY_REDIS_CONSUMER_NAME,
+        )
+
+        events = consumer.read_events()
+        assert events == []
+
+        events = consumer.read_events()
+        assert events == []
+
+        assert len(mock_order_manager.mock_calls) > 0
+        assert mock_order_manager.mock_calls == [
+            call.xautoclaim(
+                self.DUMMY_REDIS_STREAM_NAME,
+                self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+                self.DUMMY_REDIS_CONSUMER_NAME,
+                60 * 1000,
+                count=10,
+            ),
+            call.xreadgroup(
+                groupname=self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+                consumername=self.DUMMY_REDIS_CONSUMER_NAME,
+                count=10,
+                streams={self.DUMMY_REDIS_STREAM_NAME: "0-0"},
+            ),
+            # second call
+            call.xautoclaim(
+                self.DUMMY_REDIS_STREAM_NAME,
+                self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+                self.DUMMY_REDIS_CONSUMER_NAME,
+                60 * 1000,
+                count=10,
+            ),
+            call.xreadgroup(
+                groupname=self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+                consumername=self.DUMMY_REDIS_CONSUMER_NAME,
+                count=10,
+                streams={self.DUMMY_REDIS_STREAM_NAME: ">"},
+            ),
+        ]

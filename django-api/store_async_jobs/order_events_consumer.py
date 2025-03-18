@@ -54,7 +54,7 @@ def start():
         # this would be based on HOST or POD NAME or something else to be unique
         consumer_name="order-consumer",
         # process all messages from the stream, not just new ones
-        last_id="0",
+        consumer_group_start_id="0",
     )
     consumer.init()
 

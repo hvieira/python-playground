@@ -31,6 +31,10 @@ class DebeziumRedisEvent:
 
 
 class Consumer:
+    """
+    Redis consumer for streams, based on redis clients with protocol 3 and decoded responses
+    """
+
     def __init__(
         self,
         redis_client: Redis,
@@ -38,13 +42,14 @@ class Consumer:
         consumer_group_name: str,
         consumer_name: str,
         logger: logging.Logger = None,
-        last_id: str = "$",
+        consumer_group_start_id: str = "$",
     ):
         self.redis_client = redis_client
         self.stream_name = stream_name
         self.consumer_group_name = consumer_group_name
         self.consumer_name = consumer_name
-        self.last_id = last_id
+        self.consumer_group_start_id = consumer_group_start_id
+        self.check_pending_messages = True
 
         if logger is None:
             self.logger: logging.Logger = logging.getLogger(
@@ -57,7 +62,10 @@ class Consumer:
     def init(self):
         try:
             reply = self.redis_client.xgroup_create(
-                self.stream_name, self.consumer_group_name, self.last_id, mkstream=True
+                self.stream_name,
+                self.consumer_group_name,
+                self.consumer_group_start_id,
+                mkstream=True,
             )
             self.logger.info(f"reply when creating consumer group - {reply}")
         except ResponseError as e:
@@ -65,8 +73,8 @@ class Consumer:
                 self.logger.error("Failed to start consumer")
                 raise e
 
-    # TODO could be static
-    def get_event_from_redis_decoded_format(self, decoded_redis_stream_entry):
+    @staticmethod
+    def get_event_from_redis_decoded_format(decoded_redis_stream_entry):
         return RedisStreamEvent(
             decoded_redis_stream_entry[0], decoded_redis_stream_entry[1]
         )
@@ -90,27 +98,31 @@ class Consumer:
         if len(claim_result[1]) > 0:
             for raw_event in claim_result[1]:
                 events_to_process.append(
-                    self.get_event_from_redis_decoded_format(raw_event)
+                    Consumer.get_event_from_redis_decoded_format(raw_event)
                 )
             return events_to_process
 
-        # see pending messages first
-        pending_messages_response = self.redis_client.xreadgroup(
-            groupname=self.consumer_group_name,
-            consumername=self.consumer_name,
-            count=event_count,
-            streams={self.stream_name: "0-0"},
-        )
+        if self.check_pending_messages:
+            pending_messages_response = self.redis_client.xreadgroup(
+                groupname=self.consumer_group_name,
+                consumername=self.consumer_name,
+                count=event_count,
+                streams={self.stream_name: "0-0"},
+            )
 
-        if (
-            self.stream_name in pending_messages_response
-            and len(pending_messages_response[self.stream_name][0]) > 0
-        ):
-            # TODO understand why it returns a list with just a single element. Is this related to the protocol 3?
-            # TODO this is duplicated. TDD and improve upon it
-            for raw_event in pending_messages_response[self.stream_name][0]:
-                event = RedisStreamEvent(raw_event[0], raw_event[1])
-                events_to_process.append(event)
+            if self.stream_name in pending_messages_response:
+                # TODO understand why it returns a list with just a single element. Is this related to the protocol 3?
+                # TODO this is duplicated. TDD and improve upon it
+                for raw_event in pending_messages_response[self.stream_name][0]:
+                    event = RedisStreamEvent(raw_event[0], raw_event[1])
+                    events_to_process.append(event)
+
+                if len(events_to_process) == 0:
+                    self.check_pending_messages = False
+
+                return events_to_process
+            else:
+                self.check_pending_messages = False
 
         else:
             response = self.redis_client.xreadgroup(
