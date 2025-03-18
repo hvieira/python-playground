@@ -56,7 +56,7 @@ class TestRedisStreamConsumer:
             mkstream=True,
         )
 
-    def test_consumer_handles_reading_from_stream_gets_pending_messages_first(self):
+    def test_consumer_reads_from_stream_gets_pending_messages_first(self):
         redis_client = Redis(self.DUMMY_REDIS_HOST_NAME)
         redis_client.xreadgroup = Mock(return_value={})
 
@@ -74,7 +74,7 @@ class TestRedisStreamConsumer:
                 groupname=self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
                 consumername=self.DUMMY_REDIS_CONSUMER_NAME,
                 count=10,
-                streams={self.DUMMY_REDIS_STREAM_NAME: "0"},
+                streams={self.DUMMY_REDIS_STREAM_NAME: "0-0"},
             ),
             call(
                 groupname=self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,

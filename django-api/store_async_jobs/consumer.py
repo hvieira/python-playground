@@ -73,7 +73,7 @@ class Consumer:
             groupname=self.consumer_group_name,
             consumername=self.consumer_name,
             count=event_count,
-            streams={self.stream_name: "0"},
+            streams={self.stream_name: "0-0"},
         )
         print(self.stream_name in pending_messages_response)
         events_to_process = []
