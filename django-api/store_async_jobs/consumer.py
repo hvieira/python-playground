@@ -141,7 +141,7 @@ class RedisDebeziumStreamConsumer(Consumer):
 
     def process_event(self, event: RedisStreamEvent) -> str:
         debezium_event = DebeziumRedisEvent.from_redis_stream_event(event)
-        self.process_change_event(debezium_event)
+        return self.process_change_event(debezium_event)
 
-    def process_change_event(self, event: DebeziumRedisEvent):
+    def process_change_event(self, event: DebeziumRedisEvent) -> str:
         raise NotImplementedError

@@ -33,6 +33,7 @@ class OrderEventConsumer(RedisDebeziumStreamConsumer):
             # dummy shipping process
 
             case _:
+                # TODO if this is a NOOP, the event should be ack'ed to remove it from the pending message list
                 pass
 
         return event.id
