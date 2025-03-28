@@ -64,6 +64,45 @@ class TestRedisStreamConsumer:
             mkstream=True,
         )
 
+    def test_consumer_uses_correct_process_to_consumer_events(self, redis_client):
+        """
+        checks that consumer reads events from the stream, and for each event:
+        1. uses the process_event implementation
+        2. confirms event process
+        """
+        mock_order_manager = Mock()
+
+        consumer = Consumer(
+            redis_client,
+            self.DUMMY_REDIS_STREAM_NAME,
+            self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+            self.DUMMY_REDIS_CONSUMER_NAME,
+        )
+        consumer.read_events = Mock(
+            return_value=[
+                RedisStreamEvent("event-id1", {}),
+                RedisStreamEvent("event-id2", {}),
+            ]
+        )
+        consumer.process_event = Mock(side_effect=lambda x: x.id)
+        consumer.confirm_event_processed = Mock(return_value=None)
+
+        mock_order_manager.attach_mock(consumer.read_events, "read_events")
+        mock_order_manager.attach_mock(consumer.process_event, "process_event")
+        mock_order_manager.attach_mock(
+            consumer.confirm_event_processed, "confirm_event_processed"
+        )
+
+        consumer.process_events()
+
+        assert mock_order_manager.mock_calls == [
+            call.read_events(),
+            call.process_event(RedisStreamEvent("event-id1", {})),
+            call.confirm_event_processed("event-id1"),
+            call.process_event(RedisStreamEvent("event-id2", {})),
+            call.confirm_event_processed("event-id2"),
+        ]
+
     def test_consumer_reads_from_stream_checks_idle_pending_messages_then_its_pending_messages(
         self, redis_client
     ):
@@ -200,3 +239,22 @@ class TestRedisStreamConsumer:
                 streams={self.DUMMY_REDIS_STREAM_NAME: ">"},
             ),
         ]
+
+    def test_consumer_confirms_event_processed(self, redis_client: Redis):
+        consumer = Consumer(
+            redis_client,
+            self.DUMMY_REDIS_STREAM_NAME,
+            self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+            self.DUMMY_REDIS_CONSUMER_NAME,
+        )
+        redis_client.xack = Mock(return_value=1)
+
+        event_id = "event-id7891236b4v"
+
+        consumer.confirm_event_processed(event_id)
+
+        redis_client.xack.assert_called_once_with(
+            self.DUMMY_REDIS_STREAM_NAME,
+            self.DUMMY_REDIS_STREAM_CONSUMER_GROUP_NAME,
+            event_id,
+        )

@@ -124,9 +124,8 @@ class Consumer:
             self.check_pending_messages = False
             return
 
-    def confirm_event_processed(self, event_id: str):
-        # TODO sends an XACK command to redis to confirm event was processed for the specified consumer group
-        pass
+    def confirm_event_processed(self, event_id: str) -> None:
+        self.redis_client.xack(self.stream_name, self.consumer_group_name, event_id)
 
     def process_events(self):
         events = self.read_events()
