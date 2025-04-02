@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "format": "httpie",
+    "version": "1.0.0",
+    "contentType": "workspace",
+    "schema": "https://schema.httpie.io/1.0.0.json",
+    "docs": "https://httpie.io/r/help/export-from-httpie",
+    "source": "HTTPie Desktop 2025.2.0"
+  },
+  "entry": {
+    "name": "django-store-api",
+    "icon": {
+      "color": "gray",
+      "name": "default"
+    },
+    "collections": [
+      {
+        "name": "auth",
+        "icon": {
+          "name": "globe",
+          "color": "gray"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "name": "get_token",
+            "url": "http://{{HOST}}/oauth/token/",
+            "method": "POST",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "{\n\"grant_type\": \"password\",\n\"username\": \"{{default_user_username}}\",\n\"password\": \"{{dummy_passwd}}\",\n\"client_id\": \"{{oauth_app_client_id}}\",\n\"client_secret\": \"{{oauth_app_client_secret}}\"\n},",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": [
+                  {
+                    "name": "grant_type",
+                    "value": "password",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "username",
+                    "value": "{{default_user_username}}",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "password",
+                    "value": "{{dummy_passwd}}",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "client_id",
+                    "value": "{{oauth_app_client_id}}",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "client_secret",
+                    "value": "{{oauth_app_client_secret}}",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "scope",
+                    "value": "read",
+                    "enabled": false,
+                    "type": "text"
+                  }
+                ]
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          },
+          {
+            "name": "create_user",
+            "url": "http://{{HOST}}/api/users/",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": false
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "text",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "{\n  \"first_name\": \"hugo\",\n  \"last_name\": \"test\",\n  \"email\": \"hugo@test.com\",\n  \"username\": \"{{default_user_username}}\",\n  \"password\": \"{{dummy_passwd}}\"\n}",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": []
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "environments": [
+      {
+        "name": "Defaults",
+        "color": "gray",
+        "isDefault": true,
+        "isLocalOnly": false,
+        "variables": [
+          {
+            "name": "HOST",
+            "value": "localhost:8000",
+            "isSecret": false
+          },
+          {
+            "name": "default_user_username",
+            "value": "hugo.test",
+            "isSecret": false
+          },
+          {
+            "name": "dummy_passwd",
+            "value": "bananas",
+            "isSecret": true
+          },
+          {
+            "name": "superuser_username",
+            "value": "superman",
+            "isSecret": false
+          },
+          {
+            "name": "superuser_passwd",
+            "value": "l33tpass",
+            "isSecret": true
+          },
+          {
+            "name": "superuser_email",
+            "value": "superman@test.com",
+            "isSecret": false
+          },
+          {
+            "name": "oauth_app_client_id",
+            "value": "kaEUG8GBUCzVjKDdFv6p5lbLNVtwmvwhTP5LlaZ3",
+            "isSecret": true
+          },
+          {
+            "name": "oauth_app_client_secret",
+            "value": "z12vhHR494F4OgKfh9UBcBKt7Pa4kql4cBIergtZcG1a1nwgfeWVgBB6EHo1DUCYvRz8YL3Aw1jjftmRblqKd8SUw33cofATm3jYdsZAX18aX3HEEKFdTOyTG8najFeA",
+            "isSecret": true
+          }
+        ]
+      }
+    ],
+    "drafts": []
+  }
+}

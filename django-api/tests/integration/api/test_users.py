@@ -97,6 +97,8 @@ class TestUserAPI:
 
         assert response.status_code == 400
 
+    # TODO test create user with existing username should result in 400
+
     def test_update_existing_user_password(
         self,
         api_client: Client,
