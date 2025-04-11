@@ -1,3 +1,5 @@
+import argparse
+import logging
 import os
 import uuid
 
@@ -22,7 +24,7 @@ class OrderEventConsumer(RedisDebeziumStreamConsumer):
                     order.process_payment()
                     order.save()
                 except Order.DoesNotExist:
-                    self.logger.warning(
+                    logging.warning(
                         "Order %s from event %s was not found. Ignoring...",
                         str(order_id),
                         event.id,
@@ -40,6 +42,26 @@ class OrderEventConsumer(RedisDebeziumStreamConsumer):
 
 
 def start():
+    argparser = argparse.ArgumentParser(
+        prog="store background jobs",
+        description="Application that runs store background jobs",
+    )
+    argparser.add_argument(
+        "-l",
+        "--log-level",
+        choices=[
+            logging.getLevelName(logging.ERROR),
+            logging.getLevelName(logging.WARN),
+            logging.getLevelName(logging.INFO),
+            logging.getLevelName(logging.DEBUG),
+        ],
+        default=logging.INFO,
+    )
+
+    args = argparser.parse_args()
+    logging.root.setLevel(args.log_level)
+
+    # start process
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_api.settings")
     import django
 

@@ -10,8 +10,8 @@
   "entry": {
     "name": "django-store-api",
     "icon": {
-      "color": "gray",
-      "name": "default"
+      "name": "default",
+      "color": "gray"
     },
     "collections": [
       {
@@ -113,6 +113,202 @@
               },
               "text": {
                 "value": "{\n  \"first_name\": \"hugo\",\n  \"last_name\": \"test\",\n  \"email\": \"hugo@test.com\",\n  \"username\": \"{{default_user_username}}\",\n  \"password\": \"{{dummy_passwd}}\"\n}",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": []
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "products",
+        "icon": {
+          "name": "default",
+          "color": "gray"
+        },
+        "auth": {
+          "type": "bearer",
+          "credentials": {
+            "username": "",
+            "password": "zoBlRX1FUwLsi6dUDxPyyXl7rvcuyb"
+          },
+          "target": "headers"
+        },
+        "requests": [
+          {
+            "name": "get product",
+            "url": "http://{{HOST}}/api/products/",
+            "method": "GET",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": []
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "users",
+        "icon": {
+          "name": "default",
+          "color": "gray"
+        },
+        "auth": {
+          "type": "bearer",
+          "credentials": {
+            "username": "",
+            "password": "zoBlRX1FUwLsi6dUDxPyyXl7rvcuyb"
+          },
+          "target": "headers"
+        },
+        "requests": [
+          {
+            "name": "get user",
+            "url": "http://{{HOST}}/api/users/7a000c94-6dcb-4d66-bb4f-58b61d2c5dcb/",
+            "method": "GET",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": []
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "orders",
+        "icon": {
+          "name": "default",
+          "color": "gray"
+        },
+        "auth": {
+          "type": "bearer",
+          "credentials": {
+            "username": "",
+            "password": "zoBlRX1FUwLsi6dUDxPyyXl7rvcuyb"
+          },
+          "target": "headers"
+        },
+        "requests": [
+          {
+            "name": "get user orders",
+            "url": "http://{{HOST}}/api/orders/",
+            "method": "GET",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": []
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          },
+          {
+            "name": "create order",
+            "url": "http://{{HOST}}/api/orders/",
+            "method": "POST",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "text",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "{\n  \"products\": [\n    {\n      \"id\": \"304eaa92-db0a-44b9-9af1-07574d877107\",\n      \"variant\": \"m\",\n      \"quantity\": 1\n    }\n  ]\n}",
+                "format": "application/json"
+              },
+              "form": {
+                "isMultipart": false,
+                "fields": []
+              },
+              "graphql": {
+                "query": "",
+                "variables": ""
+              }
+            }
+          },
+          {
+            "name": "confirm order",
+            "url": "http://{{HOST}}/api/orders/ed20c4aa-b647-4b8c-89b5-31f3db101201/confirm/",
+            "method": "POST",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none",
+              "file": {
+                "name": ""
+              },
+              "text": {
+                "value": "",
                 "format": "application/json"
               },
               "form": {

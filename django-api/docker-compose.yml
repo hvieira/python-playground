@@ -25,6 +25,21 @@ services:
     # this component of the "architecture" should work as a daemon
     restart: on-failure
 
+  order-event-consumer:
+    profiles: [service]
+    build: .
+    command: python store_async_jobs/order_events_consumer.py --log-level=DEBUG 
+    environment:
+      # needed to find the sibling modules when running python. alternative would be to install the modules in the container
+      - PYTHONPATH=/app
+      - DB_HOST=db
+      - REDIS_HOST=redis-cache
+    depends_on:
+      - db
+      - redis-cache
+    # this component of the "architecture" should work as a daemon
+    restart: on-failure
+
 
   db:
     image: "postgres:16"

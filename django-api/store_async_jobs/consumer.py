@@ -42,7 +42,6 @@ class Consumer:
         stream_name: str,
         consumer_group_name: str,
         consumer_name: str,
-        logger: logging.Logger = None,
         consumer_group_start_id: str = "$",
     ):
         self.redis_client = redis_client
@@ -52,14 +51,6 @@ class Consumer:
         self.consumer_group_start_id = consumer_group_start_id
         self.check_pending_messages = True
 
-        if logger is None:
-            self.logger: logging.Logger = logging.getLogger(
-                f"{consumer_group_name}-{consumer_name}"
-            )
-            self.logger.setLevel(logging.INFO)
-        else:
-            self.logger = logger
-
     def init(self):
         try:
             reply = self.redis_client.xgroup_create(
@@ -68,10 +59,10 @@ class Consumer:
                 self.consumer_group_start_id,
                 mkstream=True,
             )
-            self.logger.info(f"reply when creating consumer group - {reply}")
+            logging.info(f"reply when creating consumer group - {reply}")
         except ResponseError as e:
             if e.args[0] != "BUSYGROUP Consumer Group name already exists":
-                self.logger.error("Failed to start consumer")
+                logging.error("Failed to start consumer")
                 raise e
 
     @staticmethod
@@ -104,6 +95,7 @@ class Consumer:
         )
 
         if len(claim_result[1]) > 0:
+            logging.debug("claimed idle events")
             for raw_event in claim_result[1]:
                 yield Consumer.get_event_from_redis_decoded_format(raw_event)
             # focus on idle pending messages first - do not process any other messages
@@ -117,6 +109,9 @@ class Consumer:
                 self.check_pending_messages = False
                 return
             else:
+                logging.debug(
+                    f'got {"pending" if self.check_pending_messages else "new"} events'
+                )
                 for raw_event in response[self.stream_name][0]:
                     yield Consumer.get_event_from_redis_decoded_format(raw_event)
 
@@ -126,10 +121,12 @@ class Consumer:
 
     def confirm_event_processed(self, event_id: str) -> None:
         self.redis_client.xack(self.stream_name, self.consumer_group_name, event_id)
+        logging.info("Sucessfully processed order event with redis ID %s", event_id)
 
     def process_events(self):
         events = self.read_events()
         for event in events:
+            logging.debug("processing event %s", event.id)
             event_id = self.process_event(event)
             self.confirm_event_processed(event_id)
 
